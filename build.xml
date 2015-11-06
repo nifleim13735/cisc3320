@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="cisc3320" default="compileAndRun" basedir="."> 
+  <property name="HelloText" value="Hello"/>
+	<target name="compile">
+		<javac includeantruntime="false" srcdir="." classpath="."></javac>
+	</target>
+	<target name="run">
+		<java classname="sos" classpath="."></java>
+	</target>
+	<target name="compileAndRun" depends="compile, run"></target>
+</project>
