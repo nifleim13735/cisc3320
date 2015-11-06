@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="cisc3320" default="compileAndRun" basedir="."> 
-  <property name="HelloText" value="Hello"/>
+<project name="cisc3320" default="default" basedir="."> 
+	<target name="clean">
+		<delete file="./os.class" />
+	</target>
 	<target name="compile">
-		<javac includeantruntime="false" srcdir="." classpath="."></javac>
+		<javac includeantruntime="false" srcdir=".">
+			<classpath>
+				<pathelement location="."/>
+			</classpath>
+			<include name="*/**" />
+		</javac>
 	</target>
 	<target name="run">
 		<java classname="sos" classpath="."></java>
 	</target>
-	<target name="compileAndRun" depends="compile, run"></target>
+	<target name="default" depends="clean, compile, run"></target>
 </project>
