@@ -57,6 +57,10 @@ public class os {
 		RunOSTasks();
 	}
 	
+	static void ontrace() {
+		System.out.println("Running ontrace");
+	} 
+	
 	static void BookKeeping() {
 		System.out.println("Running BookKeeping tasks");
 	}
