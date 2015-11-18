@@ -37,14 +37,29 @@ public class os {
 		sos.siodrum(pcb.jobNumber, pcb.jobSize, startingAddress, 0); 
 		RunOSTasks(a, p);
 	}
+	
+	
+	
 	public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
 		BookKeeping();
-		/**
-		 * 	Actual Interrupt handling code 
-		 */
+		
+		 while(ioQueue!=null){
+			 PCB pcb = ioQueue.poll();
+			 System.out.println("Job #" + pcb.jobNumber + " doing I/O ");
+			 
+			 
+			 sos.siodisk(pcb.jobNumber);//  job doing I/O
+			 ioQueue.remove(pcb);  //remove i/o job from I/O Queue			 
+			 readyQueue.add(pcb.jobNumber);  // put job completed I/O to the readyQueue
+			 
+		 }
 		RunOSTasks(a, p);
 	}
+	
+	
+	
+	
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
 		BookKeeping();
@@ -58,30 +73,68 @@ public class os {
 		 */
 		RunOSTasks(a, p);
 	}
+	
+	
+	
+	
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
 		BookKeeping();
-		/**
-		 * 	Actual Interrupt handling code 
-		 */
+			if (a[0]==5)
+		{
+			//job termination
+			p[4]=0; // job is done
+			PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
+			jobTable.remove(runningJob); //remove job from job table												
+			runningJob.termination(); //terminate job
+			
+			FreeSpaceTable.AddFreeSpace(runningJob);
+		}			
+		else
+		{
+			//put a job into ready queue again because not enough time-slice (p[4]) to finish 
+			p[5]=p[5]-p[4];   // CPU time still needed to finish a job, so set p[5]=0 again
+			PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
+			readyQueue.add(runningJob.jobNumber);  //put a job to the ready queue again
+		}
 		RunOSTasks(a, p);
 	}
+	
+	
+	
+	
+	
+	
 	public static void Svc (int []a, int []p) throws Exception     {
 		System.out.println("svc interrupt");
 		BookKeeping();
 		//Running job wants service a: 5 = terminate, 6 = diskIO, 7 = block
 		System.out.println(runningJob.toString());
-		if (a[0] == 5) {
+		
+		switch(a[0]):{
+		case 5: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to terminate");
-		} else if (a[0] == 6){
+			Tro(5, []p);  // job terminated upon completion
+		break;
+		
+		case 6: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
-			ioQueue.add(runningJob);
+			  
+			
+			ioQueue.add(runningJob);  // job needs to do I/O
 			sos.siodisk(runningJob.jobNumber); 
-		} else if (a[0] == 7) {
+		break; 
+		
+		case 7: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
 			runningJob.status= "WAITING";
-		} else throw new Exception("Unexpected svc code");
-
+			
+			
+		break;
+		
+		default:  throw new Exception("Unexpected svc code");
+		break;
+		}
 		RunOSTasks(a, p);
 	}
 
