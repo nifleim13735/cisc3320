@@ -59,25 +59,27 @@ public class os {
 		RunOSTasks(a, p);
 	}
 	
-	public static void Tro (int []a, int []p)     {
+		public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
 		BookKeeping();
-			if (a[0]==5)
+		PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
+		runningJob.ProcessTime(p[5])
+			if (runningJob.TimeCPU_Used()>=runningJob.MaxCpuTime()) //check wheather job exceed time slice 
 		{
-			//job termination
-			p[4]=0; // job is done
-			//PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
-			jobTable.remove(runningJob); //remove job from job table												
-			//runningJob.termination(); //terminate job
-			
-			//FreeSpaceTable.AddFreeSpace(runningJob);
+			if (runningJob.NeedsIO()>0) // check if a joob needs do I/O
+				runningJob.Termination(); // job needs do I/O
+			else // jod is done
+				{
+					FreeSpaceTable.PutFreeSpace(runningJob); // make jobsize space in FreeSpaceTable available
+					
+				}	
+			Swapper ();
 		}			
 		else
 		{
-			//put a job into ready queue again because not enough time-slice (p[4]) to finish 
-			p[5]=p[5]-p[4];   // CPU time still needed to finish a job, so set p[5]=0 again
+			//put a job into ready queue again because not enough time-slice (p[4]) to finish 		
 			//PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
-			//readyQueue.add(runningJob.jobNumber);  //put a job to the ready queue again
+			readyQueue.add(runningJob.jobNumber);  //put a job to the ready queue again
 		}
 		RunOSTasks(a, p);
 	}
