@@ -40,20 +40,14 @@ public class os {
 	
 	
 	
-	public static void Dskint (int []a, int []p)  {
+public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
 		BookKeeping();
-		
-		 while(ioQueue!=null){
 			 PCB pcb = ioQueue.poll();
-			 System.out.println("Job #" + pcb.jobNumber + " doing I/O ");
+			 System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
+			 pcb.status = "READY";
+			 readyQueue.add(pcb);  // put job completed I/O to the readyQueue
 			 
-			 
-			 sos.siodisk(pcb.jobNumber);//  job doing I/O
-			 ioQueue.remove(pcb);  //remove i/o job from I/O Queue			 
-			 readyQueue.add(pcb.jobNumber);  // put job completed I/O to the readyQueue
-			 
-		 }
 		RunOSTasks(a, p);
 	}
 	
@@ -67,10 +61,6 @@ public class os {
 		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 		pcb.status = "READY";
 		readyQueue.add(pcb);
-
-		/**
-		 * 	Actual Interrupt handling code 
-		 */
 		RunOSTasks(a, p);
 	}
 	
@@ -80,16 +70,16 @@ public class os {
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
 		BookKeeping();
-		PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
-		runningJob.ProcessTime(p[5])
+		//PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
+		runningJob.ProcessTime(p[5]);
 			if (runningJob.TimeCPU_Used()>=runningJob.MaxCpuTime()) //check wheather job exceed time slice 
 		{
-			if (runningJob.NeedsIO()>0) // check if a joob needs do I/O
-				runningJob.Termination(); // job needs do I/O
-			else // jod is done
+			if (runningJob.NeedsIO_Status()) // check if a joob needs do I/O
+				runningJob.Termination_On(); // job needs do I/O
+			else // job is done
 				{
-					FreeSpaceTable.PutFreeSpace(runningJob); // make jobsize space in FreeSpaceTable available
-					
+					FreeSpaceTable.MakeFreeSpace(runningJob); // make jobsize space in FreeSpaceTable available
+					//Need function to delete a job from jobtable
 				}	
 			Swapper ();
 		}			
@@ -97,7 +87,7 @@ public class os {
 		{
 			//put a job into ready queue again because not enough time-slice (p[4]) to finish 		
 			//PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
-			readyQueue.add(runningJob.jobNumber);  //put a job to the ready queue again
+			readyQueue.add(runningJob);  //put a job to the ready queue again
 		}
 		RunOSTasks(a, p);
 	}
@@ -110,33 +100,22 @@ public class os {
 	public static void Svc (int []a, int []p) throws Exception     {
 		System.out.println("svc interrupt");
 		BookKeeping();
-		//Running job wants service a: 5 = terminate, 6 = diskIO, 7 = block
-		System.out.println(runningJob.toString());
 		
-		switch(a[0]):{
-		case 5: 
-			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to terminate");
-			Tro(5, []p);  // job terminated upon completion
-		break;
-		
-		case 6: 
-			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
-			  
-			
-			ioQueue.add(runningJob);  // job needs to do I/O
-			sos.siodisk(runningJob.jobNumber); 
-		break; 
-		
-		case 7: 
-			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
-			runningJob.status= "WAITING";
-			
-			
-		break;
-		
-		default:  throw new Exception("Unexpected svc code");
-		break;
+		switch(a[0]) {
+			case 5: 
+				System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to terminate");
+				runningJob.status = "TERMINATED";
+				break;
+			case 6: 
+				System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
+				ioQueue.add(runningJob);  // job needs to do I/O
+				sos.siodisk(runningJob.jobNumber); 
+				break; 
+			case 7: 
+				System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
+				runningJob.status= "WAITING";
 		}
+		
 		RunOSTasks(a, p);
 	}
 
