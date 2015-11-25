@@ -25,7 +25,7 @@ public class os {
 	//Interrupt Handlers
 	public static void Crint (int []a, int []p)   {
 		System.out.println("Crint");
-		BookKeeping();
+		BookKeeping(p[5]);
 
 		//get starting address from Swapper. Hardcoding values for now.
 		int startingAddress = 0;
@@ -40,7 +40,7 @@ public class os {
 
 	public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
-		BookKeeping();
+		BookKeeping(p[5]);
 			 PCB pcb = ioQueue.poll();
 			 System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 			 pcb.status = "READY";
@@ -51,7 +51,7 @@ public class os {
 	
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
-		BookKeeping();
+		BookKeeping(p[5]);
 		PCB pcb = createdQueue.poll();
 		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 		pcb.status = "READY";
@@ -61,7 +61,7 @@ public class os {
 	
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
-		BookKeeping();
+		BookKeeping(p[5]);
 			if (a[0]==5)
 		{
 			//job termination
@@ -84,7 +84,7 @@ public class os {
 	
 	public static void Svc (int []a, int []p) throws Exception     {
 		System.out.println("svc interrupt");
-		BookKeeping();
+		BookKeeping(p[5]);
 		
 		switch(a[0]) {
 			case 5: 
@@ -108,9 +108,16 @@ public class os {
 		System.out.println("Running ontrace");
 	} 
 	
-	static void BookKeeping() {
+	static void BookKeeping(int time) {
 		System.out.println("Running BookKeeping tasks");
 		//
+		if(runningJob.status.equals("RUNNING")){
+			//get time job entered CPU
+			int timeInCPU = time - runningJob.currentTime;
+			runningJob.currentTime = runningJob.maxCpuTime;
+			runningJob.maxCpuTime = runningJob.maxCpuTime - timeInCPU;
+		}
+		
 	}
 
 	static void RunOSTasks(int[] a, int[] p) {
@@ -125,7 +132,7 @@ public class os {
 		System.out.println("Running Swapper");
 		int foundSpace;
 		//find space in memory
-		foundSpace = Swapper.FindFreeSpace(runningJob.jobSize);
+		foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
 		
 		//call siodrum()
 		if(foundSpace != -1){
