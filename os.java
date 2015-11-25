@@ -123,8 +123,18 @@ public class os {
 
 	static void Swapper () {
 		System.out.println("Running Swapper");
+		int foundSpace;
 		//find space in memory
+		foundSpace = Swapper.FindFreeSpace(runningJob.jobSize);
+		
 		//call siodrum()
+		if(foundSpace != -1){
+			System.out.println("Beginning drum transfer");
+			sos.siodrum(runningJob.jobNumber, runningJob.jobSize, runningJob.startingAddress, foundSpace);
+		}
+		else{
+			System.out.println("No space for job.");
+		}
 	}
 
 	static void Scheduler(int[] a, int[] p) {
