@@ -37,10 +37,15 @@ public class os {
 		sos.siodrum(pcb.jobNumber, pcb.jobSize, startingAddress, 0); 
 		RunOSTasks(a, p);
 	}
+<<<<<<< HEAD
 	
 	
 	
 public static void Dskint (int []a, int []p)  {
+=======
+
+	public static void Dskint (int []a, int []p)  {
+>>>>>>> origin/SL
 		System.out.println("Disk Interrupt");
 		BookKeeping();
 			 PCB pcb = ioQueue.poll();
@@ -50,9 +55,6 @@ public static void Dskint (int []a, int []p)  {
 			 
 		RunOSTasks(a, p);
 	}
-	
-	
-	
 	
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
@@ -64,10 +66,7 @@ public static void Dskint (int []a, int []p)  {
 		RunOSTasks(a, p);
 	}
 	
-	
-	
-	
-	public static void Tro (int []a, int []p)     {
+		public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
 		BookKeeping();
 		//PCB runningJob = new PCB(p[1], p[2], p[3], p[4], p[5]);  
@@ -91,11 +90,6 @@ public static void Dskint (int []a, int []p)  {
 		}
 		RunOSTasks(a, p);
 	}
-	
-	
-	
-	
-	
 	
 	public static void Svc (int []a, int []p) throws Exception     {
 		System.out.println("svc interrupt");
