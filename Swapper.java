@@ -1,6 +1,6 @@
 
 public class Swapper {
-	public static FreeSpaceTable fst;
+	public static int[] fst;
 	
 	public static int FindFreeSpace(int jobSize, int jobNumber){
 		int freeSpaceBegins = 0;
@@ -31,6 +31,7 @@ public class Swapper {
 			//there is no space for job
 			return -1;
 		}
+		return 0;
 	}
 	
 	public static void addJobToMemory(int startAddress, int jobSize, int jobNumber){
