@@ -28,7 +28,7 @@ public class os {
 	//Interrupt Handlers
 	public static void Crint (int []a, int []p)   {
 		System.out.println("Crint");
-		BookKeeping(p);
+		BookKeeping(p[5]);
 
 		//get starting address from Swapper. Hardcoding values for now.
 		int startingAddress = 0;
@@ -43,27 +43,27 @@ public class os {
 
 	public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
-		BookKeeping(p);
-			 PCB pcb = ioQueue.poll();
-			 System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
-			 pcb.ioRequestCompleted();
-			 
+		BookKeeping(p[5]);
+		PCB pcb = ioQueue.poll();
+		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
+		pcb.ioRequestCompleted();
+
 		RunOSTasks(a, p);
 	}
-	
+
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
-		BookKeeping(p);
+		BookKeeping(p[5]);
 		PCB pcb = createdQueue.poll();
 		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 		pcb.status = PCB.READY;
 		readyQueue.add(pcb);
 		RunOSTasks(a, p);
 	}
-	
+
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
-		BookKeeping(p);
+		BookKeeping(p[5]);
 		if (runningJob.cpuTimeUsed < runningJob.maxCpuTime) {
 			runningJob.status = PCB.READY;
 		} else {
@@ -71,39 +71,39 @@ public class os {
 		}
 		RunOSTasks(a, p);
 	}
-	
+
 	public static void Svc (int []a, int []p) throws Exception     {
 		System.out.println("svc interrupt");
-		BookKeeping(p);
-		
+		BookKeeping(p[5]);
+
 		switch(a[0]) {
-			case 5: 
-				System.out.println("job " + runningJob.jobNumber + " wants to terminate");
-				Scheduler.terminateJob(runningJob);
-				break;
-			case 6: 
-				System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
-				runningJob.status = PCB.READY;
-				runningJob.ioRequested();
-				sos.siodisk(runningJob.jobNumber);
-				break; 
-			case 7: 
-				System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
-				runningJob.blockJob();
-				break;
+		case 5: 
+			System.out.println("job " + runningJob.jobNumber + " wants to terminate");
+			Scheduler.terminateJob(runningJob);
+			break;
+		case 6: 
+			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
+			runningJob.status = PCB.READY;
+			runningJob.ioRequested();
+			sos.siodisk(runningJob.jobNumber);
+			break; 
+		case 7: 
+			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
+			runningJob.blockJob();
+			break;
 		}
-		
+
 		RunOSTasks(a, p);
 	}
 
-	static void BookKeeping(int[] p) {
-		currentSystemTime = p[5];
+	static void BookKeeping(int p) {
+		currentSystemTime = p;
 		if (runningJob != null ){
 			runningJob.incrementCpuTimeUsed(currentSystemTime - systemTimeWhenJobBeganToRun);
-			
+
 		}
 	}
-	
+
 
 
 	static void RunOSTasks(int[] a, int[] p) {
@@ -117,8 +117,18 @@ public class os {
 
 	static void Swapper () {
 		System.out.println("Running Swapper");
-		//find space in memory
-		//call siodrum()
+//			int foundSpace;
+//			//find space in memory
+//			foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
+//
+//			//call siodrum()
+//			if(foundSpace != -1){
+//				System.out.println("Beginning drum transfer");
+//				sos.siodrum(runningJob.jobNumber, runningJob.jobSize, runningJob.startingAddress, foundSpace);
+//			}
+//			else{
+//				System.out.println("No space for job.");
+//			}
 	}
 
 	static void Scheduler(int[] a, int[] p) {
@@ -149,16 +159,16 @@ public class os {
 	 */
 	private static void trace() {
 		System.out.println("\n\n\n************* Status ***********************************************");
-	//	System.out.println("Created Queue: " + printQueue (createdQueue));
+		//	System.out.println("Created Queue: " + printQueue (createdQueue));
 		System.out.println("Ready Queue: " + printQueue (readyQueue));
 		System.out.println("IO Queue: " + printQueue (ioQueue));
-	//	System.out.println("Waiting Queue: " + printQueue (waitingQueue));
+		//	System.out.println("Waiting Queue: " + printQueue (waitingQueue));
 		System.out.println("Currently executing:" + ((runningJob != null) ? runningJob.toString() : " None"));
 		System.out.println("\n\n*****************************");
 
 	}
 
-	 static String printQueue(Queue q) {
+	static String printQueue(Queue q) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(q.size());
 		for (int i = 0, l = q.size(); i < l; i++ ){
