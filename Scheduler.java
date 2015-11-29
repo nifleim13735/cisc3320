@@ -2,16 +2,23 @@ import java.util.Queue;
 
 public class Scheduler {
 	public static void Schedule(int[] a, int[] p) {
-	
 		if (os.runningJob != null){
 			if (os.runningJob.status.equals(PCB.READY)){
 				os.nextScheduledJob = os.runningJob;
 				os.runningJob = null;
-			} 
+			} else if (os.runningJob.status.equals(PCB.RUNNING)){
+				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+				os.runningJob.status = PCB.READY;
+				os.readyQueue.add(os.runningJob);
+				os.runningJob = null;
+				scheduleNextFromReadyQueue();
+			}
 			else {
+				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++" + os.runningJob.status);
 				scheduleNextFromReadyQueue();
 			}
 		} else {
+			System.out.println("No running job ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
 			scheduleNextFromReadyQueue();
 
 		}
@@ -32,6 +39,7 @@ public class Scheduler {
 		}
 	}
 
+
 	public static void terminateJob(PCB job) {
 		//can't terminate if any outstanding i/o requests
 		if (job.outstandingIoRequests > 0){
@@ -45,7 +53,7 @@ public class Scheduler {
 			System.out.println(job.toString());
 			os.readyQueue.remove(job);
 			os.jobTable.remove(job);
-			System.out.println(os.printQueue(os.jobTable));
+			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
 		}
 	}
 }

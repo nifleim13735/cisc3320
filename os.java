@@ -12,6 +12,8 @@ public class os {
 	public static PCB nextScheduledJob;
 	public static int currentSystemTime = 0;
 	public static int systemTimeWhenJobBeganToRun = 0;
+	public static Swapper Swapper;
+	public static Boolean isDrumBusy = false;
 	static final int TIMESLICE = 10; //TBD
 
 	public static void startup() {
@@ -21,23 +23,35 @@ public class os {
 		readyQueue= new LinkedList<PCB>();
 		waitingQueue= new LinkedList<PCB>();
 		ioQueue= new LinkedList<PCB>();
+		Swapper = new Swapper();
+		
 		//sos.ontrace();
 	}
 
 
 	//Interrupt Handlers
-	public static void Crint (int []a, int []p)   {
+	public static void Crint (int []a, int []p)  {
 		System.out.println("Crint");
 		BookKeeping(p[5]);
 
 		//get starting address from Swapper. Hardcoding values for now.
-		int startingAddress = 0;
+		int startingAddress = Swapper.addJobToMemory(p[3]);
+		if (startingAddress < 0){
+			System.out.println("Unable to find free spce... need to solve this");
+			Swapper.printFreeSpaceTable();
+		}
+		Swapper.printFreeSpaceTable();
 
 		//create new PCB and add to jobTable
 		PCB pcb = new PCB(p[1], p[2], p[3], p[4], p[5], startingAddress);
+		System.out.println(pcb.toString());
 		jobTable.add(pcb);
 		createdQueue.add(pcb);
-		sos.siodrum(pcb.jobNumber, pcb.jobSize, startingAddress, 0); 
+		if (!os.isDrumBusy && pcb.startingAddress > -1){
+			os.isDrumBusy = true;
+			sos.siodrum(pcb.jobNumber, pcb.jobSize, pcb.startingAddress, 0);
+		}
+		trace();
 		RunOSTasks(a, p);
 	}
 
@@ -56,8 +70,10 @@ public class os {
 		BookKeeping(p[5]);
 		PCB pcb = createdQueue.poll();
 		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
+		isDrumBusy = false;
 		pcb.status = PCB.READY;
 		readyQueue.add(pcb);
+		trace();
 		RunOSTasks(a, p);
 	}
 
@@ -159,7 +175,7 @@ public class os {
 	 */
 	private static void trace() {
 		System.out.println("\n\n\n************* Status ***********************************************");
-		//	System.out.println("Created Queue: " + printQueue (createdQueue));
+		System.out.println("Created Queue: " + printQueue (createdQueue));
 		System.out.println("Ready Queue: " + printQueue (readyQueue));
 		System.out.println("IO Queue: " + printQueue (ioQueue));
 		//	System.out.println("Waiting Queue: " + printQueue (waitingQueue));
