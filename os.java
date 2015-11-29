@@ -37,15 +37,12 @@ public class os {
 		sos.siodrum(pcb.jobNumber, pcb.jobSize, startingAddress, 0); 
 		RunOSTasks(a, p);
 	}
-<<<<<<< HEAD
+
 	
 	
 	
 public static void Dskint (int []a, int []p)  {
-=======
 
-	public static void Dskint (int []a, int []p)  {
->>>>>>> origin/SL
 		System.out.println("Disk Interrupt");
 		BookKeeping();
 			 PCB pcb = ioQueue.poll();
