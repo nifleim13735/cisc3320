@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Swapper {
 	public static int[] fst;
@@ -7,6 +8,7 @@ public class Swapper {
 	Swapper(){
 		FreeSpace fs = new FreeSpace(0, 100);
 		freeSpaceTable.add(fs);
+		printFreeSpaceTable();
 	}
 
 	public FreeSpace FindFreeSpace(int jobSize) {
@@ -15,15 +17,16 @@ public class Swapper {
 				return freeSpaceTable.get(i);
 			}
 		}
+		//No free space available
 		return null;
 	}
 	public int addJobToMemory(int jobSize){
 		FreeSpace fs = FindFreeSpace(jobSize);
 		if (fs != null){
+			System.out.println("Found free space at " + fs.toString());
 			int address = fs.address;
-			//update the existing free space
-			fs.address = fs.address + jobSize;
-			fs.size = fs.size - jobSize;
+			//update the existing free space 
+			fs.setStartAddress(fs.address + jobSize);
 			return address;
 		} 
 
@@ -31,6 +34,49 @@ public class Swapper {
 		return -1;
 	}
 
+	public static void removeJobFromMemory(int startAddress, int jobSize){
+		System.out.println("Freeing memory");
+		FreeSpace fs = new FreeSpace(startAddress, jobSize);
+		mergeFreeSpace(fs);
+		Collections.sort(freeSpaceTable);
+		printFreeSpaceTable();
+	}
+	static void mergeFreeSpace(FreeSpace fs) {
+		//combine free spaces
+		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
+			FreeSpace current = freeSpaceTable.get(i);
+			if (fs.address == current.endAddress()){
+				System.out.println("merging with previous free space");
+				current.size += fs.size;
+				return;
+			}
+			if (fs.endAddress() == current.address){
+				System.out.println("merging with next free space");
+				current.setStartAddress(fs.address);
+				return;
+			}
+			
+		}
+		freeSpaceTable.add(fs);
+	}
+	public static void printFreeSpaceTable() {
+		System.out.println("Free Space Table");
+		for (int i = 0, l = freeSpaceTable.size(); i < l; i++) {
+			System.out.println(freeSpaceTable.get(i).toString());
+		}
+	}
+	
+	public static void scheduleNextFromCreatedQueue() {
+//		PCB next = os.createdQueue.peek();
+//		if (next != null){
+//			if (!os.isDrumBusy){
+//				os.isDrumBusy = true;
+//				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
+//			}
+//		}
+
+	}
+	
 	public static int FindFreeSpace(int jobSize, int jobNumber){
 		int freeSpaceBegins = 0;
 		int freeSpaceEnds = 0;
