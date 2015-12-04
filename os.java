@@ -25,7 +25,7 @@ public class os {
 		ioQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		//sos.ontrace();
+		sos.ontrace();
 	}
 
 
@@ -123,28 +123,53 @@ public class os {
 
 
 	static void RunOSTasks(int[] a, int[] p) {
-		//trace();
+		trace();
 		Swapper();
 		Scheduler(a, p);
 		RunJob(a, p);
-		//trace();
+		trace();
 
 	}
 
-	static void Swapper () {
+	static void Swapper() {
 		System.out.println("Running Swapper");
-//			int foundSpace;
-//			//find space in memory
-//			foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
-//
-//			//call siodrum()
-//			if(foundSpace != -1){
-//				System.out.println("Beginning drum transfer");
-//				sos.siodrum(runningJob.jobNumber, runningJob.jobSize, runningJob.startingAddress, foundSpace);
-//			}
-//			else{
-//				System.out.println("No space for job.");
-//			}
+		int startAddress;
+		
+		if(!isDrumBusy){
+			System.out.println("Drum is not busy.");
+		}
+		else{
+			System.out.println("Drum is busy.");
+		}
+		
+        if(!isDrumBusy){
+        	
+        	if(createdQueue.size() > 0){
+        		System.out.println("Swapping from memory to drum");
+        		isDrumBusy = true;
+        		System.out.println("Getting first item from created queue: " + createdQueue.peek().toString());
+        		PCB jobToSwap = createdQueue.poll();
+//        		startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
+        		Swapper.addJobToMemory(jobToSwap.jobSize);
+//        		if(startAddress != -1){
+        			sos.siodrum(jobToSwap.jobNumber, jobToSwap.jobSize, jobToSwap.startingAddress, 0);
+//        		}
+//        		isDrumBusy = false;
+        	}
+        	else{
+        		System.out.println("Nothing in createdQueue.");
+        	}
+        	
+//        	for(int i = 0; i < jobTable.size(); i++){
+//        		if(jobTable.peek().startingAddress == -1){
+//        			System.out.println("Beginning swap");
+//        			isDrumBusy = true; 
+//        			Swapper.addJobToMemory(jobTable.peek().jobSize);
+//        			sos.siodrum(jobTable.peek().jobNumber, jobTable.peek().jobSize,
+//        						jobTable.peek().startingAddress, 0);
+//        		}
+//        	}
+   		}
 	}
 
 	static void Scheduler(int[] a, int[] p) {
@@ -161,7 +186,9 @@ public class os {
 			p[2] = runningJob.startingAddress;
 			p[3] = runningJob.jobSize;
 			p[4] = runningJob.timeSlice;
-			System.out.println("Running scheduled job #" + runningJob.jobNumber);
+			System.out.println("Running scheduled job #: " + runningJob.jobNumber);
+			System.out.println("Running scheduled job with size: " + runningJob.jobSize);
+			System.out.println("Running scheduled job with time slice: " + runningJob.timeSlice);
 			nextScheduledJob = null;
 		} else {
 			a[0] =1;

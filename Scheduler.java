@@ -53,7 +53,7 @@ public class Scheduler {
 			System.out.println(job.toString());
 			os.readyQueue.remove(job);
 			os.jobTable.remove(job);
-			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
+			os.Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
 		}
 	}
 }
