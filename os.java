@@ -142,39 +142,39 @@ public class os {
 		System.out.println("Running Swapper");
 		int startAddress;
 		
-		if(!isDrumBusy){
+		if(!os.isDrumBusy){
 			System.out.println("Drum is not busy.");
 		}
 		else{
 			System.out.println("Drum is busy.");
 		}
 		
-        if(!isDrumBusy){
+        if(!os.isDrumBusy){
+        	
+        	System.out.println("Swapping..");
         	
         	if(createdQueue.size() > 0 ){
-        		System.out.println("Swapping from memory to drum");
-        		System.out.println("Getting first item from created queue: " + createdQueue.peek().toString());
-        		PCB jobToSwap = createdQueue.peek();
         		
+        		System.out.println("Created Queue has:\n" + createdQueue.toString());
+        		PCB jobToSwap = createdQueue.poll();
+        		
+        		//find space in memory
         		startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
+        		System.out.println("startAddress returned: " + startAddress);
+        		jobToSwap.startingAddress = startAddress;
         		
-        		if(startAddress > -1){
+        		//call siodrum()
+        		if(startAddress != -1){
+        			readyQueue.add(jobToSwap);
+        			System.out.println("Swapping in Job#" + jobToSwap.jobNumber + " from memory to drum.");
         			isDrumBusy = true;
-        			jobToSwap.startingAddress = startAddress;
+        			
         			sos.siodrum(jobToSwap.jobNumber, jobToSwap.jobSize, jobToSwap.startingAddress, 0);
         		}
         		else{
-//        			System.out.println("Looking for space for: " + jobToSwap.toString());
-        			startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
-        			
-        			if(startAddress >= 0){
-        				System.out.println("Found Space at " + startAddress);
-        				jobToSwap.startingAddress = startAddress;
-        				jobToSwap.status = PCB.READY;
-        				readyQueue.add(jobToSwap);
-        			}
-
+        			System.out.println("No space for current job.");
         		}
+        		
         	}
         	else{
         		System.out.println("Nothing in createdQueue.");
