@@ -47,10 +47,6 @@ public class os {
 		System.out.println(pcb.toString());
 		jobTable.add(pcb);
 		createdQueue.add(pcb);
-		// if (!os.isDrumBusy && pcb.startingAddress > -1){
-		// 	os.isDrumBusy = true;
-		// 	sos.siodrum(pcb.jobNumber, pcb.jobSize, pcb.startingAddress, 0);
-		// }
 		trace();
 		RunOSTasks(a, p);
 	}
