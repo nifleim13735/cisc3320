@@ -68,11 +68,18 @@ public class os {
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
 		BookKeeping(p[5]);
-		PCB pcb = createdQueue.poll();
-		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
+		PCB pcb = createdQueue.peek();
 		isDrumBusy = false;
-		pcb.status = PCB.READY;
-		readyQueue.add(pcb);
+		if(pcb.startingAddress >= 0){
+			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
+//			isDrumBusy = false;
+			pcb.status = PCB.READY;
+			readyQueue.add(pcb);
+			createdQueue.poll();
+		}
+		else{
+			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
+		}
 		trace();
 		RunOSTasks(a, p);
 	}
@@ -144,31 +151,35 @@ public class os {
 		
         if(!isDrumBusy){
         	
-        	if(createdQueue.size() > 0){
+        	if(createdQueue.size() > 0 ){
         		System.out.println("Swapping from memory to drum");
-        		isDrumBusy = true;
         		System.out.println("Getting first item from created queue: " + createdQueue.peek().toString());
-        		PCB jobToSwap = createdQueue.poll();
-//        		startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
-        		Swapper.addJobToMemory(jobToSwap.jobSize);
-//        		if(startAddress != -1){
+        		PCB jobToSwap = createdQueue.peek();
+        		
+        		startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
+        		
+        		if(startAddress > -1){
+        			isDrumBusy = true;
+        			jobToSwap.startingAddress = startAddress;
         			sos.siodrum(jobToSwap.jobNumber, jobToSwap.jobSize, jobToSwap.startingAddress, 0);
-//        		}
-//        		isDrumBusy = false;
+        		}
+        		else{
+//        			System.out.println("Looking for space for: " + jobToSwap.toString());
+        			startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
+        			
+        			if(startAddress >= 0){
+        				System.out.println("Found Space at " + startAddress);
+        				jobToSwap.startingAddress = startAddress;
+        				jobToSwap.status = PCB.READY;
+        				readyQueue.add(jobToSwap);
+        			}
+
+        		}
         	}
         	else{
         		System.out.println("Nothing in createdQueue.");
+        		trace();
         	}
-        	
-//        	for(int i = 0; i < jobTable.size(); i++){
-//        		if(jobTable.peek().startingAddress == -1){
-//        			System.out.println("Beginning swap");
-//        			isDrumBusy = true; 
-//        			Swapper.addJobToMemory(jobTable.peek().jobSize);
-//        			sos.siodrum(jobTable.peek().jobNumber, jobTable.peek().jobSize,
-//        						jobTable.peek().startingAddress, 0);
-//        		}
-//        	}
    		}
 	}
 
