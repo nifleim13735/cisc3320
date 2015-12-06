@@ -14,7 +14,8 @@ public class os {
 	public static int systemTimeWhenJobBeganToRun = 0;
 	public static Swapper Swapper;
 	public static Boolean isDrumBusy = false;
-	static final int TIMESLICE = 10; //TBD
+	public static Boolean isDiskBusy = false;
+	static final int TIMESLICE = 100; //TBD
 
 	public static void startup() {
 		System.out.println("Startup()");
@@ -25,7 +26,7 @@ public class os {
 		ioQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		//sos.ontrace();
+		sos.ontrace();
 	}
 
 
@@ -47,10 +48,6 @@ public class os {
 		System.out.println(pcb.toString());
 		jobTable.add(pcb);
 		createdQueue.add(pcb);
-		if (!os.isDrumBusy && pcb.startingAddress > -1){
-			os.isDrumBusy = true;
-			sos.siodrum(pcb.jobNumber, pcb.jobSize, pcb.startingAddress, 0);
-		}
 		trace();
 		RunOSTasks(a, p);
 	}
@@ -61,7 +58,7 @@ public class os {
 		PCB pcb = ioQueue.poll();
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
-
+		os.isDiskBusy = false;
 		RunOSTasks(a, p);
 	}
 
@@ -79,6 +76,7 @@ public class os {
 
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
+		trace();
 		BookKeeping(p[5]);
 		if (runningJob.cpuTimeUsed < runningJob.maxCpuTime) {
 			runningJob.status = PCB.READY;
@@ -101,7 +99,7 @@ public class os {
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
 			runningJob.status = PCB.READY;
 			runningJob.ioRequested();
-			sos.siodisk(runningJob.jobNumber);
+			//sos.siodisk(runningJob.jobNumber);
 			break; 
 		case 7: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
@@ -124,15 +122,16 @@ public class os {
 
 	static void RunOSTasks(int[] a, int[] p) {
 		//trace();
-		Swapper();
+		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
 		//trace();
 
 	}
 
-	static void Swapper () {
+	static void Swapperr () {
 		System.out.println("Running Swapper");
+		Swapper.scheduleNextFromCreatedQueue();
 //			int foundSpace;
 //			//find space in memory
 //			foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
