@@ -5,13 +5,13 @@ public class Swapper {
 	public static int[] fst;
 	public static ArrayList<FreeSpace> freeSpaceTable = new ArrayList<FreeSpace>();
 
-	Swapper(){
+	 Swapper(){
 		FreeSpace fs = new FreeSpace(0, 100);
 		freeSpaceTable.add(fs);
 		printFreeSpaceTable();
 	}
 
-	public FreeSpace FindFreeSpace(int jobSize) {
+	public static FreeSpace FindFreeSpace(int jobSize) {
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
 			if (freeSpaceTable.get(i).size >= jobSize){
 				return freeSpaceTable.get(i);
@@ -20,7 +20,7 @@ public class Swapper {
 		//No free space available
 		return null;
 	}
-	public int addJobToMemory(int jobSize){
+	public static int addJobToMemory(int jobSize){
 		FreeSpace fs = FindFreeSpace(jobSize);
 		if (fs != null){
 			System.out.println("Found free space at " + fs.toString());
@@ -67,61 +67,22 @@ public class Swapper {
 	}
 	
 	public static void scheduleNextFromCreatedQueue() {
-//		PCB next = os.createdQueue.peek();
-//		if (next != null){
-//			if (!os.isDrumBusy){
-//				os.isDrumBusy = true;
-//				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
-//			}
-//		}
+		PCB next = os.createdQueue.peek();
+		if (next != null){
+			if (next.startingAddress < 0 ){
+				next.startingAddress = addJobToMemory(next.jobSize);
+				if (next.startingAddress < 0){
+					System.out.println("Unable to find free spce... need to solve this");
+					printFreeSpaceTable();
+				}
+
+			}
+			if (!os.isDrumBusy && next.startingAddress > -1){
+				os.isDrumBusy = true;
+				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
+			}
+		}
 
 	}
 	
-	public static int FindFreeSpace(int jobSize, int jobNumber){
-		int freeSpaceBegins = 0;
-		int freeSpaceEnds = 0;
-		boolean freeSpaceFound = false;
-
-		for(int i = 0; i < 100; i++){
-			//search memory for free space and mark where free space begins
-			if(fst[i] == 0 && freeSpaceFound == false){
-				freeSpaceBegins = i;
-				freeSpaceFound = true;
-			}
-
-			//if memory is taken, mark address where free space ends
-			if(fst[i] > 0 && freeSpaceFound == true){
-				freeSpaceEnds = i;
-
-				//if size of free space fits job
-				if( (freeSpaceEnds - freeSpaceBegins) >= jobSize ){
-					//add job to memory @ address freeSpaceBegins
-					addJobToMemory(freeSpaceBegins, jobSize, jobNumber);
-					return freeSpaceBegins;
-				}else{
-					//keep looking for space
-					freeSpaceFound = false;
-				}
-			}
-			//there is no space for job
-			return -1;
-		}
-		return 0;
-	}
-
-	public static void addJobToMemory(int startAddress, int jobSize, int jobNumber){
-		//add job to memory
-		for(int i = startAddress; i < startAddress + jobSize; i++){
-			fst[i] = jobNumber;
-		}
-	}
-
-	public static void removeJobFromMemory(int jobNumber){
-		//remove job from memory
-		for(int i = 0; i< 100; i++){
-			if(fst[i] == jobNumber){
-				fst[i] = 0;
-			}
-		}
-	}
 }
