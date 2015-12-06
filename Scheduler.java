@@ -38,6 +38,18 @@ public class Scheduler {
 		else {
 			System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
+			Scheduler.scheduleNextFromIoQueue();
+		}
+	}
+
+	public static void scheduleNextFromIoQueue() {
+		PCB next = os.ioQueue.peek();
+		if (next != null){
+			System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
+			if (!os.isDiskBusy){
+				os.isDiskBusy = true;
+				sos.siodisk(next.jobNumber);
+			}
 		}
 	}
 

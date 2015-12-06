@@ -75,14 +75,12 @@ public class Swapper {
 					System.out.println("Unable to find free spce... need to solve this");
 					printFreeSpaceTable();
 				}
-
 			}
 			if (!os.isDrumBusy && next.startingAddress > -1){
 				os.isDrumBusy = true;
 				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
 			}
 		}
-
 	}
 	
 }
