@@ -12,6 +12,8 @@ public class Swapper {
 	}
 
 	public static FreeSpace FindFreeSpace(int jobSize) {
+		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
+		
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
 			if (freeSpaceTable.get(i).size >= jobSize){
 				return freeSpaceTable.get(i);
@@ -20,10 +22,20 @@ public class Swapper {
 		//No free space available
 		return null;
 	}
+
+	public static void removeFreeSpacesWithSizeZero(){
+		for (int i = 0, l = freeSpaceTable.size(); i < l ; i++ ) {
+			if (freeSpaceTable.get(i).size == 0){
+				freeSpaceTable.remove(i);
+			}
+		}
+	}
+
 	public static int addJobToMemory(int jobSize){
 		FreeSpace fs = FindFreeSpace(jobSize);
+		//removeFreeSpacesWithSizeZero();
 		if (fs != null){
-			System.out.println("Found free space at " + fs.toString());
+			System.out.println("Found free space at MMMM++++++++++++++++++++++++++++++++++++++++MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM" + fs.toString());
 			int address = fs.address;
 			//update the existing free space 
 			fs.setStartAddress(fs.address + jobSize);

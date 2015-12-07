@@ -15,7 +15,7 @@ public class os {
 	public static Swapper Swapper;
 	public static Boolean isDrumBusy = false;
 	public static Boolean isDiskBusy = false;
-	static final int TIMESLICE = 100; //TBD
+	static int TIMESLICE = 1000; //TBD
 
 	public static void startup() {
 		System.out.println("Startup()");
@@ -26,7 +26,7 @@ public class os {
 		ioQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		sos.ontrace();
+		//sos.ontrace();
 	}
 
 
@@ -59,6 +59,7 @@ public class os {
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
 		os.isDiskBusy = false;
+		Scheduler.scheduleNextFromIoQueue();
 		RunOSTasks(a, p);
 	}
 
@@ -121,7 +122,7 @@ public class os {
 
 
 	static void RunOSTasks(int[] a, int[] p) {
-		//trace();
+		trace();
 		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
@@ -187,7 +188,7 @@ public class os {
 		StringBuilder sb = new StringBuilder();
 		sb.append(q.size());
 		for (int i = 0, l = q.size(); i < l; i++ ){
-			sb.append(q.peek().toString());
+			//sb.append(q.peek().toString());
 		}
 		return sb.toString();
 	}
