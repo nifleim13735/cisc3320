@@ -14,7 +14,8 @@ public class os {
 	public static int systemTimeWhenJobBeganToRun = 0;
 	public static Swapper Swapper;
 	public static Boolean isDrumBusy = false;
-	static final int TIMESLICE = 10; //TBD
+	public static Boolean isDiskBusy = false;
+	static final int TIMESLICE = 100; //TBD
 
 	public static void startup() {
 		System.out.println("Startup()");
@@ -47,10 +48,6 @@ public class os {
 		System.out.println(pcb.toString());
 		jobTable.add(pcb);
 		createdQueue.add(pcb);
-		if (!os.isDrumBusy && pcb.startingAddress > -1){
-			os.isDrumBusy = true;
-			sos.siodrum(pcb.jobNumber, pcb.jobSize, pcb.startingAddress, 0);
-		}
 		trace();
 		RunOSTasks(a, p);
 	}
@@ -61,7 +58,7 @@ public class os {
 		PCB pcb = ioQueue.poll();
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
-
+		os.isDiskBusy = false;
 		RunOSTasks(a, p);
 	}
 
@@ -86,6 +83,7 @@ public class os {
 
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
+		trace();
 		BookKeeping(p[5]);
 		if (runningJob.cpuTimeUsed < runningJob.maxCpuTime) {
 			runningJob.status = PCB.READY;
@@ -108,7 +106,7 @@ public class os {
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
 			runningJob.status = PCB.READY;
 			runningJob.ioRequested();
-			sos.siodisk(runningJob.jobNumber);
+			//sos.siodisk(runningJob.jobNumber);
 			break; 
 		case 7: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
@@ -130,57 +128,29 @@ public class os {
 
 
 	static void RunOSTasks(int[] a, int[] p) {
-		trace();
-		Swapper();
+		//trace();
+		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
 		trace();
 
 	}
 
-	static void Swapper() {
+	static void Swapperr () {
 		System.out.println("Running Swapper");
-		int startAddress;
-		
-		if(!os.isDrumBusy){
-			System.out.println("Drum is not busy.");
-		}
-		else{
-			System.out.println("Drum is busy.");
-		}
-		
-        if(!os.isDrumBusy){
-        	
-        	System.out.println("Swapping..");
-        	
-        	if(createdQueue.size() > 0 ){
-        		
-        		System.out.println("Created Queue has:\n" + createdQueue.toString());
-        		PCB jobToSwap = createdQueue.poll();
-        		
-        		//find space in memory
-        		startAddress = Swapper.addJobToMemory(jobToSwap.jobSize);
-        		System.out.println("startAddress returned: " + startAddress);
-        		jobToSwap.startingAddress = startAddress;
-        		
-        		//call siodrum()
-        		if(startAddress != -1){
-        			readyQueue.add(jobToSwap);
-        			System.out.println("Swapping in Job#" + jobToSwap.jobNumber + " from memory to drum.");
-        			isDrumBusy = true;
-        			
-        			sos.siodrum(jobToSwap.jobNumber, jobToSwap.jobSize, jobToSwap.startingAddress, 0);
-        		}
-        		else{
-        			System.out.println("No space for current job.");
-        		}
-        		
-        	}
-        	else{
-        		System.out.println("Nothing in createdQueue.");
-        		trace();
-        	}
-   		}
+		Swapper.scheduleNextFromCreatedQueue();
+//			int foundSpace;
+//			//find space in memory
+//			foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
+//
+//			//call siodrum()
+//			if(foundSpace != -1){
+//				System.out.println("Beginning drum transfer");
+//				sos.siodrum(runningJob.jobNumber, runningJob.jobSize, runningJob.startingAddress, foundSpace);
+//			}
+//			else{
+//				System.out.println("No space for job.");
+//			}
 	}
 
 	static void Scheduler(int[] a, int[] p) {

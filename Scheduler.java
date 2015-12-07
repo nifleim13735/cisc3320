@@ -4,8 +4,10 @@ public class Scheduler {
 	public static void Schedule(int[] a, int[] p) {
 		if (os.runningJob != null){
 			if (os.runningJob.status.equals(PCB.READY)){
-				os.nextScheduledJob = os.runningJob;
+				System.out.println("Moving READY Job back to READY queue ------------------------------------");
+				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
+				scheduleNextFromReadyQueue();
 			} else if (os.runningJob.status.equals(PCB.RUNNING)){
 				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				os.runningJob.status = PCB.READY;
@@ -36,6 +38,18 @@ public class Scheduler {
 		else {
 			System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
+			Scheduler.scheduleNextFromIoQueue();
+		}
+	}
+
+	public static void scheduleNextFromIoQueue() {
+		PCB next = os.ioQueue.peek();
+		if (next != null){
+			System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
+			if (!os.isDiskBusy){
+				os.isDiskBusy = true;
+				sos.siodisk(next.jobNumber);
+			}
 		}
 	}
 

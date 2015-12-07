@@ -5,7 +5,7 @@ public class Swapper {
 	public static int[] fst;
 	public static ArrayList<FreeSpace> freeSpaceTable = new ArrayList<FreeSpace>();
 
-	Swapper(){
+	 Swapper(){
 		FreeSpace fs = new FreeSpace(0, 100);
 		freeSpaceTable.add(fs);
 		printFreeSpaceTable();
@@ -14,6 +14,7 @@ public class Swapper {
 
 	public FreeSpace findFreeSpace(int jobSize) {
 		System.out.println("Looking for freespace: " + jobSize);
+
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
 			if (freeSpaceTable.get(i).size >= jobSize){
 				return freeSpaceTable.get(i);
@@ -25,6 +26,7 @@ public class Swapper {
 	
 	public int addJobToMemory(int jobSize){
 		FreeSpace fs = findFreeSpace(jobSize);
+
 		if (fs != null){
 			System.out.println("Found free space at " + fs.toString());
 			int address = fs.address;
@@ -73,15 +75,21 @@ public class Swapper {
 		}
 	}
 	
+
 	public void scheduleNextFromCreatedQueue() {
-//		PCB next = os.createdQueue.peek();
-//		if (next != null){
-//			if (!os.isDrumBusy){
-//				os.isDrumBusy = true;
-//				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
-//			}
-//		}
-
+		PCB next = os.createdQueue.peek();
+		if (next != null){
+			if (next.startingAddress < 0 ){
+				next.startingAddress = addJobToMemory(next.jobSize);
+				if (next.startingAddress < 0){
+					System.out.println("Unable to find free spce... need to solve this");
+					printFreeSpaceTable();
+				}
+			}
+			if (!os.isDrumBusy && next.startingAddress > -1){
+				os.isDrumBusy = true;
+				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
+			}
+		}
 	}
-
 }
