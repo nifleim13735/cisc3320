@@ -63,21 +63,33 @@ public class os {
 		RunOSTasks(a, p);
 	}
 
+//	public static void Drmint (int []a, int []p)  {
+//		System.out.println("Drum Interrupt");
+//		BookKeeping(p[5]);
+//		PCB pcb = createdQueue.peek();
+//		isDrumBusy = false;
+//		if(pcb.startingAddress >= 0){
+//			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
+////			isDrumBusy = false;
+//			pcb.status = PCB.READY;
+//			readyQueue.add(pcb);
+//			createdQueue.poll();
+//		}
+//		else{
+//			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
+//		}
+//		trace();
+//		RunOSTasks(a, p);
+//	}
+	
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
 		BookKeeping(p[5]);
-		PCB pcb = createdQueue.peek();
+		PCB pcb = createdQueue.poll();
+		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 		isDrumBusy = false;
-		if(pcb.startingAddress >= 0){
-			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
-//			isDrumBusy = false;
-			pcb.status = PCB.READY;
-			readyQueue.add(pcb);
-			createdQueue.poll();
-		}
-		else{
-			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
-		}
+		pcb.status = PCB.READY;
+		readyQueue.add(pcb);
 		trace();
 		RunOSTasks(a, p);
 	}
