@@ -2,23 +2,31 @@ import java.util.Queue;
 
 public class Scheduler {
 	public static void Schedule(int[] a, int[] p) {
+		scheduleNextFromIoQueue();
 		if (os.runningJob != null){
 			if (os.runningJob.status.equals(PCB.READY)){
-				//System.out.println("Moving READY Job back to READY queue ------------------------------------");
-				os.readyQueue.add(os.runningJob);
+				System.out.println("Moving READY Job back to READY queue ------------------------------------");
+			//	os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
-				scheduleNextFromReadyQueue();
+				
 			} else if (os.runningJob.status.equals(PCB.RUNNING)){
-				//System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				os.runningJob.status = PCB.READY;
 				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
+				
+			}
+			else if (os.runningJob.status.equals(PCB.WAITING) && os.runningJob.isBlocked){
+				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------>>>>>>>>>>>>>" + os.runningJob.status + " isBlocked: " + os.runningJob.isBlocked);
 				scheduleNextFromReadyQueue();
+				return;
 			}
 			else {
-			//	System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++" + os.runningJob.status);
+				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++" + os.runningJob.status);
 				scheduleNextFromReadyQueue();
+				return;
 			}
+			scheduleNextFromReadyQueue();
 		} else {
 		//	System.out.println("No running job ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
 			scheduleNextFromReadyQueue();
@@ -36,7 +44,7 @@ public class Scheduler {
 			os.readyQueue.poll();
 		}
 		else {
-			System.out.println("No job scheduled");
+		//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
 			Scheduler.scheduleNextFromIoQueue();
 		}
@@ -47,6 +55,8 @@ public class Scheduler {
 		if (next != null){
 			//System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
 			if (!os.isDiskBusy){
+				System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
+				
 				os.isDiskBusy = true;
 				sos.siodisk(next.jobNumber);
 			}
@@ -66,7 +76,8 @@ public class Scheduler {
 			job.status = PCB.TERMINATED;
 			System.out.println(job.toString());
 			os.readyQueue.remove(job);
-			os.jobTable.remove(job);
+			int i = os.jobTable.indexOf(job);
+			os.jobTable.remove(i);
 			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
 		}
 	}

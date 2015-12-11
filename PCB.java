@@ -5,7 +5,7 @@ public class PCB {
 	public final static String RUNNING = "RUNNING";
 	public final static String WAITING = "WAITING";
 	public final static String TERMINATED = "TERMINATED";
-	
+
 	String status;
 	int jobNumber;
 	int priority;
@@ -45,19 +45,26 @@ public class PCB {
 	public void ioRequested() {
 		this.outstandingIoRequests += 1;				
 		os.ioQueue.add(this);  // job needs to do I/O
+		//os.readyQueue.remove(this);
 	}
 
-	public void ioRequestCompleted() {
-		this.outstandingIoRequests -= 1;
-		os.ioQueue.remove(this);
-		if (this.outstandingIoRequests == 0 ){
-			System.out.println("All requests for job " + this.jobNumber + " completed");
-			if (this.isBlocked) { this.unblockJob(); }
-			if (this.markedForTermination){
-				Scheduler.terminateJob(this);
-			} else {
-				this.status= READY;
-				os.readyQueue.add(this);
+	public static void ioRequestCompleted() {
+		PCB job = os.ioQueue.peek();
+		job.outstandingIoRequests -= 1;
+		if (job != null){
+			if (job.outstandingIoRequests == 0 ){
+				System.out.println("All requests for job " + job.jobNumber + " completed");
+				if (job.isBlocked) { job.unblockJob(); }
+				if (job.markedForTermination){
+					Scheduler.terminateJob(job);
+				} else {
+					System.out.println("Changing status of job # " + job.jobNumber + " from " + job.status + " to READY --------------->>>> and added to ready queue");
+					job.status= READY;
+					//os.runningJob = null;
+					os.readyQueue.add(job);
+					os.ioQueue.poll();
+					os.trace();
+				}
 			}
 		}
 	}
@@ -66,7 +73,7 @@ public class PCB {
 		this.status = WAITING;
 		this.isBlocked = true;
 	}
-	
+
 	public void unblockJob() {
 		this.isBlocked = false;
 	}
@@ -83,9 +90,9 @@ public class PCB {
 	public void markForTermination() {
 		this.markedForTermination = true;
 	}
-	
+
 	public String toString() {
-		return "Job#: " + this.jobNumber + ", status:" + this.status + ", priority: " + this.priority + ", jobSize: " + this.jobSize + ", maxCpuTime: " + this.maxCpuTime 
+		return "Job #: " + this.jobNumber + ", status:" + this.status + ", priority: " + this.priority + ", jobSize: " + this.jobSize + ", maxCpuTime: " + this.maxCpuTime 
 				+ ", cpu time used: " + this.cpuTimeUsed + ", cpu time remaining: " + this.cpuTimeRemaining() 
 				+ ", timeSlice on next tick: " + this.timeSlice + ", outstanding I/O requests: " + this.outstandingIoRequests
 				+ ", startingAddress: " + this.startingAddress ;

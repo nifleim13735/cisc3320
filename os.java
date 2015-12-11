@@ -1,9 +1,10 @@
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.ArrayList;
 
 public class os {
 
-	public static Queue<PCB> jobTable;
+	public static ArrayList<PCB> jobTable;
 	public static Queue<PCB> createdQueue;
 	public static Queue<PCB> readyQueue;
 	public static Queue<PCB> waitingQueue;
@@ -19,14 +20,14 @@ public class os {
 
 	public static void startup() {
 		System.out.println("Startup()");
-		jobTable = new LinkedList<PCB>();
-		createdQueue= new LinkedList<PCB>();
+		jobTable = new ArrayList<PCB>();
+		os.createdQueue= new LinkedList<PCB>();
 		readyQueue= new LinkedList<PCB>();
 		waitingQueue= new LinkedList<PCB>();
 		ioQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		//sos.ontrace();
+		sos.ontrace();
 	}
 
 
@@ -36,26 +37,29 @@ public class os {
 		BookKeeping(p[5]);
 
 		//get starting address from Swapper. Hardcoding values for now.
-		int startingAddress = Swapper.addJobToMemory(p[3]);
-		if (startingAddress < 0){
-			System.out.println("Unable to find free spce... need to solve this");
-			Swapper.printFreeSpaceTable();
-		}
-		Swapper.printFreeSpaceTable();
+		int startingAddress = -1 ;// Swapper.addJobToMemory(p[3]);
+		//if (startingAddress < 0){
+			//System.out.println("Unable to find free spce... need to solve this");
+			//Swapper.printFreeSpaceTable();
+		
 
 		//create new PCB and add to jobTable
 		PCB pcb = new PCB(p[1], p[2], p[3], p[4], p[5], startingAddress);
-		System.out.println(pcb.toString());
+		System.out.println(pcb.toString() + "\n\n\n");
 		jobTable.add(pcb);
-		createdQueue.add(pcb);
-		trace();
+		//if (pcb.startingAddress > -1){
+		os.createdQueue.add(pcb);
+		System.out.println(printQueue(os.createdQueue));
+		Swapper.swapIn();
+	//	}
+		//trace();
 		RunOSTasks(a, p);
 	}
 
 	public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
 		BookKeeping(p[5]);
-		PCB pcb = ioQueue.poll();
+		PCB pcb = ioQueue.peek();
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
 		os.isDiskBusy = false;
@@ -66,7 +70,7 @@ public class os {
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt");
 		BookKeeping(p[5]);
-		PCB pcb = createdQueue.poll();
+		PCB pcb = os.createdQueue.poll();
 		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 		isDrumBusy = false;
 		pcb.status = PCB.READY;
@@ -77,10 +81,11 @@ public class os {
 
 	public static void Tro (int []a, int []p)     {
 		System.out.println("tro");
-		trace();
+		//trace();
 		BookKeeping(p[5]);
 		if (runningJob.cpuTimeUsed < runningJob.maxCpuTime) {
 			runningJob.status = PCB.READY;
+			readyQueue.add(runningJob);
 		} else {
 			Scheduler.terminateJob(runningJob);
 		}
@@ -98,13 +103,15 @@ public class os {
 			break;
 		case 6: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to do disk io");
-			runningJob.status = PCB.READY;
+			//runningJob.status = PCB.READY;
 			runningJob.ioRequested();
 			//sos.siodisk(runningJob.jobNumber);
 			break; 
 		case 7: 
 			System.out.println("Running job ( job# " + runningJob.jobNumber + " ) wants to be blocked");
-			runningJob.blockJob();
+			if (runningJob.outstandingIoRequests > 0){
+				runningJob.blockJob();
+			}
 			break;
 		}
 
@@ -122,16 +129,16 @@ public class os {
 
 
 	static void RunOSTasks(int[] a, int[] p) {
-		trace();
+		//trace();
 		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
-		//trace();
+		trace();
 
 	}
 
 	static void Swapperr () {
-		System.out.println("Running Swapper");
+		//System.out.println("Running Swapper");
 		Swapper.scheduleNextFromCreatedQueue();
 //			int foundSpace;
 //			//find space in memory
@@ -148,7 +155,7 @@ public class os {
 	}
 
 	static void Scheduler(int[] a, int[] p) {
-		System.out.println("Running Scheduler");
+		//System.out.println("Running Scheduler");
 		Scheduler.Schedule(a, p);
 	}
 
@@ -161,26 +168,28 @@ public class os {
 			p[2] = runningJob.startingAddress;
 			p[3] = runningJob.jobSize;
 			p[4] = runningJob.timeSlice;
-			System.out.println("Running scheduled job #" + runningJob.jobNumber);
+		//	System.out.println("Running scheduled job #" + runningJob.jobNumber);
 			nextScheduledJob = null;
 		} else {
 			a[0] =1;
-			System.out.println("No job to run");
+			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!No job to run");
 			runningJob= null;
 		}
 	}
 
 	/*
-	 * Private methods for debugging
+	 *  methods for debugging
 	 */
-	private static void trace() {
+	public static void trace() {
 		System.out.println("\n\n\n************* Status ***********************************************");
-		System.out.println("Created Queue: " + printQueue (createdQueue));
+		System.out.println("Created Queue: " + printQueue (os.createdQueue));
 		System.out.println("Ready Queue: " + printQueue (readyQueue));
 		System.out.println("IO Queue: " + printQueue (ioQueue));
 		//	System.out.println("Waiting Queue: " + printQueue (waitingQueue));
 		System.out.println("Currently executing:" + ((runningJob != null) ? runningJob.toString() : " None"));
-		System.out.println("\n\n*****************************");
+		Swapper.printFreeSpaceTable();
+		System.out.println(printJobTable());
+	//	System.out.println("\n\n*****************************");
 
 	}
 
@@ -188,7 +197,17 @@ public class os {
 		StringBuilder sb = new StringBuilder();
 		sb.append(q.size());
 		for (int i = 0, l = q.size(); i < l; i++ ){
-			//sb.append(q.peek().toString());
+			sb.append(q.peek().toString());
+		}
+		return sb.toString();
+	}
+	
+	static String printJobTable (){
+		System.out.println("Job Table:");
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0, l = jobTable.size(); i < l; i++){
+			sb.append(jobTable.get(i).toString());
+			sb.append('\n');
 		}
 		return sb.toString();
 	}

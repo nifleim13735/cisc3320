@@ -11,6 +11,10 @@ public class Swapper {
 		printFreeSpaceTable();
 	}
 
+	 public static void swapIn() {
+		 scheduleNextFromCreatedQueue();
+	 }
+	 
 	public static FreeSpace FindFreeSpace(int jobSize) {
 		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
 		
@@ -39,10 +43,11 @@ public class Swapper {
 			int address = fs.address;
 			//update the existing free space 
 			fs.setStartAddress(fs.address + jobSize);
+			if (fs.size == 0) freeSpaceTable.remove(fs);
 			return address;
 		} 
 
-		System.out.println("Unable to find memory");
+	//	System.out.println("Unable to find memory");
 		return -1;
 	}
 
@@ -50,6 +55,7 @@ public class Swapper {
 		System.out.println("Freeing memory");
 		FreeSpace fs = new FreeSpace(startAddress, jobSize);
 		mergeFreeSpace(fs);
+		mergeFreeSpaces();
 		Collections.sort(freeSpaceTable);
 		printFreeSpaceTable();
 	}
@@ -60,6 +66,7 @@ public class Swapper {
 			if (fs.address == current.endAddress()){
 				System.out.println("merging with previous free space");
 				current.size += fs.size;
+				//mergeFreeSpace(fs);
 				return;
 			}
 			if (fs.endAddress() == current.address){
@@ -71,6 +78,30 @@ public class Swapper {
 		}
 		freeSpaceTable.add(fs);
 	}
+	
+	static void mergeFreeSpaces (){
+		FreeSpace previous = null;
+		FreeSpace current;
+		
+		 ArrayList<FreeSpace> toRemove = new  ArrayList<FreeSpace>();
+	
+		for (FreeSpace fs : freeSpaceTable){
+			current = fs;
+			if (previous != null) {
+				if (previous.endAddress() == current.address ){
+					System.out.println("merging with previous free space -------------- and removing current free space");
+					System.out.println("previous: " + previous.toString());
+					System.out.println("current: " + current.toString());
+					previous.size += current.size;
+					toRemove.add(current);
+				}
+			}
+			previous = current;
+		}
+		freeSpaceTable.removeAll(toRemove);
+		
+	}
+	
 	public static void printFreeSpaceTable() {
 		System.out.println("Free Space Table");
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++) {
@@ -80,11 +111,12 @@ public class Swapper {
 	
 	public static void scheduleNextFromCreatedQueue() {
 		PCB next = os.createdQueue.peek();
-		if (next != null){
+		
+		if  (next != null){
 			if (next.startingAddress < 0 ){
 				next.startingAddress = addJobToMemory(next.jobSize);
 				if (next.startingAddress < 0){
-					System.out.println("Unable to find free spce... need to solve this");
+					System.out.println("Unable to find free spce... need to solve this ------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + next.jobNumber);
 					printFreeSpaceTable();
 				}
 			}
