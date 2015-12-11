@@ -6,15 +6,15 @@ public class Scheduler {
 		if (os.runningJob != null){
 			if (os.runningJob.status.equals(PCB.READY)){
 				System.out.println("Moving READY Job back to READY queue ------------------------------------");
-			//	os.readyQueue.add(os.runningJob);
+				//	os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
-				
+
 			} else if (os.runningJob.status.equals(PCB.RUNNING)){
 				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				os.runningJob.status = PCB.READY;
 				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
-				
+
 			}
 			else if (os.runningJob.status.equals(PCB.WAITING) && os.runningJob.isBlocked){
 				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------>>>>>>>>>>>>>" + os.runningJob.status + " isBlocked: " + os.runningJob.isBlocked);
@@ -28,7 +28,7 @@ public class Scheduler {
 			}
 			scheduleNextFromReadyQueue();
 		} else {
-		//	System.out.println("No running job ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
+			//	System.out.println("No running job ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
 			scheduleNextFromReadyQueue();
 
 		}
@@ -44,7 +44,7 @@ public class Scheduler {
 			os.readyQueue.poll();
 		}
 		else {
-		//	System.out.println("No job scheduled");
+			//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
 			Scheduler.scheduleNextFromIoQueue();
 		}
@@ -53,12 +53,14 @@ public class Scheduler {
 	public static void scheduleNextFromIoQueue() {
 		PCB next = os.ioQueue.peek();
 		if (next != null){
-			//System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
-			if (!os.isDiskBusy){
-				System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
-				
-				os.isDiskBusy = true;
-				sos.siodisk(next.jobNumber);
+//			if (next.outstandingIoRequests > 0){
+				//System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
+				if (!os.isDiskBusy){
+					System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
+
+					os.isDiskBusy = true;
+					sos.siodisk(next.jobNumber);
+//				}
 			}
 		}
 	}

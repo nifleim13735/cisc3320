@@ -57,13 +57,15 @@ public class PCB {
 				if (job.isBlocked) { job.unblockJob(); }
 				if (job.markedForTermination){
 					Scheduler.terminateJob(job);
-				} else {
-					System.out.println("Changing status of job # " + job.jobNumber + " from " + job.status + " to READY --------------->>>> and added to ready queue");
-					job.status= READY;
-					//os.runningJob = null;
-					os.readyQueue.add(job);
 					os.ioQueue.poll();
-					os.trace();
+				} else {
+					if (job.status != READY){
+						System.out.println("Changing status of job # " + job.jobNumber + " from " + job.status + " to READY --------------->>>> and added to ready queue");
+						job.status= READY;
+						os.readyQueue.add(job);
+						os.trace();
+					}
+					os.ioQueue.poll();
 				}
 			}
 		}

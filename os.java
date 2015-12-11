@@ -16,7 +16,7 @@ public class os {
 	public static Swapper Swapper;
 	public static Boolean isDrumBusy = false;
 	public static Boolean isDiskBusy = false;
-	static int TIMESLICE = 1000; //TBD
+	static int TIMESLICE = 100; //TBD
 
 	public static void startup() {
 		System.out.println("Startup()");
@@ -195,9 +195,9 @@ public class os {
 
 	static String printQueue(Queue q) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(q.size());
+		sb.append("-----------------------------" + q.size());
 		for (int i = 0, l = q.size(); i < l; i++ ){
-			sb.append(q.peek().toString());
+		//	sb.append(q.peek().toString());
 		}
 		return sb.toString();
 	}
