@@ -16,7 +16,7 @@ public class FreeSpace implements Comparable<FreeSpace> {
 		this.address = newAddress;
 	}
 	public String toString() {
-		return this.address + ", " +this.size;
+		return "Start: " +  this.address + ", end: " + this.endAddress() + ", size: " +this.size;
 	}
 	@Override
 	public int compareTo(FreeSpace o) {

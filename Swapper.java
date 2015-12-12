@@ -13,8 +13,23 @@ public class Swapper {
 		System.out.println("Freespace size: " + freeSpaceTable.size());
 	}
 
-	public FreeSpace findFreeSpace(int jobSize) {
-
+	 public void swapIn() {
+		 swapInFromCreatedQueue();
+	 }
+	 
+	 	 
+	 public void swapOut(PCB job){
+			if (!os.isDrumBusy){
+				System.out.println("Swapped out job #  " + job.jobNumber);
+				job.status = PCB.SWAPPEDOUT;
+				os.isDrumBusy = true;
+				os.swapDirection = 1;
+				removeJobFromMemory(job.startingAddress, job.jobSize);
+				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
+			} 
+	 }
+	 
+	public FreeSpace FindFreeSpace(int jobSize) {
 		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
 		
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
@@ -26,15 +41,6 @@ public class Swapper {
 		}
 		//No free space available
 		return null;
-	}
-
-
-	public void removeFreeSpacesWithSizeZero(){
-		for (int i = 0, l = freeSpaceTable.size(); i < l ; i++ ) {
-			if (freeSpaceTable.get(i).size == 0){
-				freeSpaceTable.remove(i);
-			}
-		}
 	}
 
 	public int addJobToMemory(int jobSize){
@@ -50,6 +56,7 @@ public class Swapper {
 			int address = fs.address;
 			//update the existing free space 
 			fs.setStartAddress(fs.address + jobSize);
+<<<<<<< HEAD
 			
 			if(fs.size == 0){
 				freeSpaceTable.remove(fs);
@@ -58,10 +65,13 @@ public class Swapper {
 			System.out.println("Starting address is: " + address);
 			System.out.println("After addJob, freeSpaceTable contains:");
 			printFreeSpaceTable();
+=======
+			if (fs.size == 0) freeSpaceTable.remove(fs);
+>>>>>>> 57c9dfe2cff0846ae72842fdfbcf9ef189de77fe
 			return address;
 		} 
 
-		System.out.println("Unable to find memory");
+	//	System.out.println("Unable to find memory");
 		return -1;
 	}
 
@@ -69,6 +79,7 @@ public class Swapper {
 		System.out.println("Freeing memory");
 		FreeSpace fs = new FreeSpace(startAddress, jobSize);
 		mergeFreeSpace(fs);
+		mergeFreeSpaces();
 		Collections.sort(freeSpaceTable);
 		System.out.println("Free Space Table after removed job.");
 		printFreeSpaceTable();
@@ -88,6 +99,7 @@ public class Swapper {
 				System.out.println("merging with previous free space");
 				System.out.println("prevfreespace " + current.toString());
 				current.size += fs.size;
+				//mergeFreeSpace(fs);
 				return;
 			}
 			if (fs.endAddress() == current.address){
@@ -105,6 +117,30 @@ public class Swapper {
 		System.out.println("After merge, freeSpaceTable contains:");
 		printFreeSpaceTable();
 	}
+
+	public void mergeFreeSpaces (){
+		FreeSpace previous = null;
+		FreeSpace current;
+		
+		 ArrayList<FreeSpace> toRemove = new  ArrayList<FreeSpace>();
+	
+		for (FreeSpace fs : freeSpaceTable){
+			current = fs;
+			if (previous != null) {
+				if (previous.endAddress() == current.address ){
+					System.out.println("merging with previous free space -------------- and removing current free space");
+					System.out.println("previous: " + previous.toString());
+					System.out.println("current: " + current.toString());
+					previous.size += current.size;
+					toRemove.add(current);
+				}
+			}
+			previous = current;
+		}
+		freeSpaceTable.removeAll(toRemove);
+		
+	}
+	
 	public void printFreeSpaceTable() {
 		System.out.println("Free Space Table");
 		System.out.println("Table size: " + freeSpaceTable.size());
@@ -113,22 +149,42 @@ public class Swapper {
 		}
 	}
 	
-
-	public void scheduleNextFromCreatedQueue() {
+	public void swapInFromCreatedQueue() {
 		PCB next = os.createdQueue.peek();
-		if (next != null){
+		
+		if  (next != null){
 			if (next.startingAddress < 0 ){
 				next.startingAddress = addJobToMemory(next.jobSize);
 				if (next.startingAddress < 0){
-					System.out.println("Unable to find free spce... need to solve this");
+					System.out.println("Unable to find free spce... need to solve this ------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + next.jobNumber);
+					os.createdQueue.add(os.createdQueue.poll());
 					printFreeSpaceTable();
 				}
 			}
 			if (!os.isDrumBusy && next.startingAddress > -1){
 				System.out.println("Swapping from memory to core");
 				os.isDrumBusy = true;
+				os.swapDirection = 0;
 				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
 			}
-		}
+		} 
 	}
+	
+//	public static void swapInFromSwappedOutQueue() {
+//		for (int i = 0, l = os.jobTable.size(); i < l; i++){
+//			PCB job = os.jobTable.get(i);
+//			System.out.println("PRingint this shit");
+//			System.out.println(job.toString());
+//			if (job.status == PCB.SWAPPEDOUT){
+//				System.out.println("Swapping job back in");
+//				if (!os.isDrumBusy && job.startingAddress > -1){
+//					os.isDrumBusy = true;
+//					os.swapDirection = 0;
+//					sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 0);
+//					break;
+//				}
+//			}
+//		}
+//	}
+	
 }
