@@ -2,6 +2,10 @@
 <project name="cisc3320" default="default" basedir="."> 
 	<target name="clean">
 		<delete file="./os.class" />
+		<delete file="./PCB.class" />
+		<delete file="./Scheduler.class" />
+		<delete file="./Swapper.class" />
+		<delete file="./FreeSpace.class" />
 	</target>
 	<target name="compile">
 		<javac includeantruntime="false" srcdir=".">
