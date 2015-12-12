@@ -24,6 +24,8 @@ public class Swapper {
 			os.swapDirection = 1;
 			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
 			sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
+			job.startingAddress = -1;
+			os.swappedOutQueue.add(os.readyQueue.poll());
 		} 
 	}
 
@@ -34,8 +36,6 @@ public class Swapper {
 				System.out.println("Swapping out long jobs");
 				if (!os.isDrumBusy){
 					Swapper.swapOut(next);
-					next.startingAddress = -1;
-					os.swappedOutQueue.add(os.readyQueue.poll());
 				}
 			}
 		}
