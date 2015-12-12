@@ -5,31 +5,45 @@ public class Swapper {
 	public static int[] fst;
 	public static ArrayList<FreeSpace> freeSpaceTable = new ArrayList<FreeSpace>();
 
-	 Swapper(){
+	Swapper(){
 		FreeSpace fs = new FreeSpace(0, 100);
 		freeSpaceTable.add(fs);
 		printFreeSpaceTable();
 	}
 
-	 public static void swapIn() {
-		 swapInFromCreatedQueue();
-	 }
-	 
-	 	 
-	 public static void swapOut(PCB job){
-			if (!os.isDrumBusy){
-				System.out.println("Swapped out job #  " + job.jobNumber);
-				job.status = PCB.SWAPPEDOUT;
-				os.isDrumBusy = true;
-				os.swapDirection = 1;
-				Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
-				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
-			} 
-	 }
-	 
+	public static void swapIn() {
+		swapInFromCreatedQueue();
+	}
+
+
+	public static void swapOut(PCB job){
+		if (!os.isDrumBusy){
+			System.out.println("Swapped out job #  " + job.jobNumber);
+			job.status = PCB.SWAPPEDOUT;
+			os.isDrumBusy = true;
+			os.swapDirection = 1;
+			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
+			sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
+		} 
+	}
+
+	public static void swapOutFromReadyQueue(){
+		PCB next  = os.readyQueue.peek();
+		if (next != null) {
+			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
+				System.out.println("Swapping out long jobs");
+				if (!os.isDrumBusy){
+					Swapper.swapOut(next);
+					next.startingAddress = -1;
+					os.swappedOutQueue.add(os.readyQueue.poll());
+				}
+			}
+		}
+	}
+
 	public static FreeSpace FindFreeSpace(int jobSize) {
 		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
-		
+
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
 			if (freeSpaceTable.get(i).size >= jobSize){
 				return freeSpaceTable.get(i);
@@ -52,7 +66,7 @@ public class Swapper {
 			return address;
 		} 
 
-	//	System.out.println("Unable to find memory");
+		//	System.out.println("Unable to find memory");
 		return -1;
 	}
 
@@ -79,17 +93,17 @@ public class Swapper {
 				current.setStartAddress(fs.address);
 				return;
 			}
-			
+
 		}
 		freeSpaceTable.add(fs);
 	}
-	
+
 	static void mergeFreeSpaces (){
 		FreeSpace previous = null;
 		FreeSpace current;
-		
-		 ArrayList<FreeSpace> toRemove = new  ArrayList<FreeSpace>();
-	
+
+		ArrayList<FreeSpace> toRemove = new  ArrayList<FreeSpace>();
+
 		for (FreeSpace fs : freeSpaceTable){
 			current = fs;
 			if (previous != null) {
@@ -104,19 +118,19 @@ public class Swapper {
 			previous = current;
 		}
 		freeSpaceTable.removeAll(toRemove);
-		
+
 	}
-	
+
 	public static void printFreeSpaceTable() {
 		System.out.println("Free Space Table");
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++) {
 			System.out.println(freeSpaceTable.get(i).toString());
 		}
 	}
-	
+
 	public static void swapInFromCreatedQueue() {
 		PCB next = os.createdQueue.peek();
-		
+
 		if  (next != null){
 			if (next.startingAddress < 0 ){
 				next.startingAddress = addJobToMemory(next.jobSize);
@@ -133,23 +147,23 @@ public class Swapper {
 			}
 		} 
 	}
-	
-//	public static void swapInFromSwappedOutQueue() {
-//		for (int i = 0, l = os.jobTable.size(); i < l; i++){
-//			PCB job = os.jobTable.get(i);
-//			System.out.println("PRingint this shit");
-//			System.out.println(job.toString());
-//			if (job.status == PCB.SWAPPEDOUT){
-//				System.out.println("Swapping job back in");
-//				if (!os.isDrumBusy && job.startingAddress > -1){
-//					os.isDrumBusy = true;
-//					os.swapDirection = 0;
-//					sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 0);
-//					break;
-//				}
-//			}
-//		}
-//	}
-	
-	
+
+	//	public static void swapInFromSwappedOutQueue() {
+	//		for (int i = 0, l = os.jobTable.size(); i < l; i++){
+	//			PCB job = os.jobTable.get(i);
+	//			System.out.println("PRingint this shit");
+	//			System.out.println(job.toString());
+	//			if (job.status == PCB.SWAPPEDOUT){
+	//				System.out.println("Swapping job back in");
+	//				if (!os.isDrumBusy && job.startingAddress > -1){
+	//					os.isDrumBusy = true;
+	//					os.swapDirection = 0;
+	//					sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 0);
+	//					break;
+	//				}
+	//			}
+	//		}
+	//	}
+
+
 }

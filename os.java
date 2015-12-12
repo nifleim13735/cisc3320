@@ -31,7 +31,7 @@ public class os {
 		swappedOutQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		sos.ontrace();
+		//sos.ontrace();
 	}
 
 
@@ -139,7 +139,7 @@ public class os {
 		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
-		trace();
+		//trace();
 
 	}
 
@@ -157,7 +157,11 @@ public class os {
 			}
 		}
 		
+		Swapper.swapOutFromReadyQueue();
 		Swapper.swapInFromCreatedQueue();
+		
+		
+		
 	}
 
 	static void Scheduler(int[] a, int[] p) {

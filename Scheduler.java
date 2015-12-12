@@ -23,16 +23,6 @@ public class Scheduler {
 	public static void scheduleNextFromReadyQueue(){
 		PCB next = os.readyQueue.peek();
 		if (next != null){
-			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
-				System.out.println("Swapping out long jobs");
-				if (!os.isDrumBusy){
-					Swapper.swapOut(next);
-					next.startingAddress = -1;
-					os.swappedOutQueue.add(os.readyQueue.poll());
-					scheduleNextFromReadyQueue();
-					return;
-				}
-			}
 			System.out.println("Scheduled job #" + next.jobNumber + " to run in the next tick");
 			os.nextScheduledJob = next;
 			os.readyQueue.poll();
