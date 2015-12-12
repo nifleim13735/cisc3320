@@ -5,6 +5,7 @@ public class PCB {
 	public final static String RUNNING = "RUNNING";
 	public final static String WAITING = "WAITING";
 	public final static String TERMINATED = "TERMINATED";
+	public final static String SWAPPEDOUT = "SWAPPEDOUT";
 
 	String status;
 	int jobNumber;
@@ -63,7 +64,7 @@ public class PCB {
 						System.out.println("Changing status of job # " + job.jobNumber + " from " + job.status + " to READY --------------->>>> and added to ready queue");
 						job.status= READY;
 						os.readyQueue.add(job);
-						os.trace();
+						//os.trace();
 					}
 					os.ioQueue.poll();
 				}

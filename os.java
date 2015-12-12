@@ -9,6 +9,7 @@ public class os {
 	public static Queue<PCB> readyQueue;
 	public static Queue<PCB> waitingQueue;
 	public static Queue<PCB> ioQueue;
+	public static Queue<PCB> swappedOutQueue;
 	public static PCB runningJob;
 	public static PCB nextScheduledJob;
 	public static int currentSystemTime = 0;
@@ -16,7 +17,9 @@ public class os {
 	public static Swapper Swapper;
 	public static Boolean isDrumBusy = false;
 	public static Boolean isDiskBusy = false;
-	static int TIMESLICE = 100; //TBD
+	public static int swapDirection = 0; 
+	public static int swapperTimer = 0;
+	static int TIMESLICE = 1000; //TBD
 
 	public static void startup() {
 		System.out.println("Startup()");
@@ -25,6 +28,7 @@ public class os {
 		readyQueue= new LinkedList<PCB>();
 		waitingQueue= new LinkedList<PCB>();
 		ioQueue= new LinkedList<PCB>();
+		swappedOutQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
 		sos.ontrace();
@@ -63,18 +67,20 @@ public class os {
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
 		os.isDiskBusy = false;
-		Scheduler.scheduleNextFromIoQueue();
+		Scheduler.scheduleIo();
 		RunOSTasks(a, p);
 	}
 
 	public static void Drmint (int []a, int []p)  {
-		System.out.println("Drum Interrupt");
+		System.out.println("Drum Interrupt, Direction: " + os.swapDirection);
 		BookKeeping(p[5]);
-		PCB pcb = os.createdQueue.poll();
-		System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
+		if (os.swapDirection == 0){
+			PCB pcb = os.createdQueue.poll();
+			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
+			pcb.status = PCB.READY;
+			readyQueue.add(pcb);
+		}
 		isDrumBusy = false;
-		pcb.status = PCB.READY;
-		readyQueue.add(pcb);
 		trace();
 		RunOSTasks(a, p);
 	}
@@ -139,19 +145,19 @@ public class os {
 
 	static void Swapperr () {
 		//System.out.println("Running Swapper");
-		Swapper.scheduleNextFromCreatedQueue();
-//			int foundSpace;
-//			//find space in memory
-//			foundSpace = Swapper.FindFreeSpace(runningJob.jobSize, runningJob.jobNumber);
-//
-//			//call siodrum()
-//			if(foundSpace != -1){
-//				System.out.println("Beginning drum transfer");
-//				sos.siodrum(runningJob.jobNumber, runningJob.jobSize, runningJob.startingAddress, foundSpace);
-//			}
-//			else{
-//				System.out.println("No space for job.");
-//			}
+		if (currentSystemTime - swapperTimer > 1000){
+			swapperTimer = os.currentSystemTime;
+			System.out.println("Swapper Time");
+			if (os.swappedOutQueue.size() > 0){
+				System.out.println("Swapper reloading swapped out jobs");
+				PCB job = os.swappedOutQueue.poll();
+				job.status = PCB.CREATED;
+				os.createdQueue.add(job);
+				os.createdQueue.add(os.createdQueue.poll());
+			}
+		}
+		
+		Swapper.swapInFromCreatedQueue();
 	}
 
 	static void Scheduler(int[] a, int[] p) {
@@ -189,7 +195,7 @@ public class os {
 		System.out.println("Currently executing:" + ((runningJob != null) ? runningJob.toString() : " None"));
 		Swapper.printFreeSpaceTable();
 		System.out.println(printJobTable());
-	//	System.out.println("\n\n*****************************");
+		System.out.println("\n\n*****************************");
 
 	}
 

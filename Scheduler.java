@@ -2,35 +2,19 @@ import java.util.Queue;
 
 public class Scheduler {
 	public static void Schedule(int[] a, int[] p) {
-		scheduleNextFromIoQueue();
+		scheduleIo();
 		if (os.runningJob != null){
-			if (os.runningJob.status.equals(PCB.READY)){
-				System.out.println("Moving READY Job back to READY queue ------------------------------------");
-				//	os.readyQueue.add(os.runningJob);
-				os.runningJob = null;
-
-			} else if (os.runningJob.status.equals(PCB.RUNNING)){
+			if (os.runningJob.status.equals(PCB.RUNNING)){
 				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				os.runningJob.status = PCB.READY;
 				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
 
 			}
-			else if (os.runningJob.status.equals(PCB.WAITING) && os.runningJob.isBlocked){
-				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------>>>>>>>>>>>>>" + os.runningJob.status + " isBlocked: " + os.runningJob.isBlocked);
-				scheduleNextFromReadyQueue();
-				return;
-			}
-			else {
-				System.out.println("Running job not READY ++++++++++++++++++++++++++++++++++++++++++++++++++++" + os.runningJob.status);
-				scheduleNextFromReadyQueue();
-				return;
-			}
+		
 			scheduleNextFromReadyQueue();
 		} else {
-			//	System.out.println("No running job ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
 			scheduleNextFromReadyQueue();
-
 		}
 
 	}
@@ -39,6 +23,16 @@ public class Scheduler {
 	public static void scheduleNextFromReadyQueue(){
 		PCB next = os.readyQueue.peek();
 		if (next != null){
+			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
+				System.out.println("Swapping out long jobs");
+				if (!os.isDrumBusy){
+					Swapper.swapOut(next);
+					next.startingAddress = -1;
+					os.swappedOutQueue.add(os.readyQueue.poll());
+					scheduleNextFromReadyQueue();
+					return;
+				}
+			}
 			System.out.println("Scheduled job #" + next.jobNumber + " to run in the next tick");
 			os.nextScheduledJob = next;
 			os.readyQueue.poll();
@@ -46,26 +40,21 @@ public class Scheduler {
 		else {
 			//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
-			Scheduler.scheduleNextFromIoQueue();
 		}
 	}
 
-	public static void scheduleNextFromIoQueue() {
+	public static void scheduleIo() {
 		PCB next = os.ioQueue.peek();
 		if (next != null){
-//			if (next.outstandingIoRequests > 0){
-				//System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz schduled cpu to do io");
 				if (!os.isDiskBusy){
 					System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
-
 					os.isDiskBusy = true;
 					sos.siodisk(next.jobNumber);
-//				}
 			}
 		}
 	}
 
-
+	
 	public static void terminateJob(PCB job) {
 		//can't terminate if any outstanding i/o requests
 		if (job.outstandingIoRequests > 0){

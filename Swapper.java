@@ -12,7 +12,19 @@ public class Swapper {
 	}
 
 	 public static void swapIn() {
-		 scheduleNextFromCreatedQueue();
+		 swapInFromCreatedQueue();
+	 }
+	 
+	 	 
+	 public static void swapOut(PCB job){
+			if (!os.isDrumBusy){
+				System.out.println("Swapped out job #  " + job.jobNumber);
+				job.status = PCB.SWAPPEDOUT;
+				os.isDrumBusy = true;
+				os.swapDirection = 1;
+				Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
+				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
+			} 
 	 }
 	 
 	public static FreeSpace FindFreeSpace(int jobSize) {
@@ -27,13 +39,6 @@ public class Swapper {
 		return null;
 	}
 
-	public static void removeFreeSpacesWithSizeZero(){
-		for (int i = 0, l = freeSpaceTable.size(); i < l ; i++ ) {
-			if (freeSpaceTable.get(i).size == 0){
-				freeSpaceTable.remove(i);
-			}
-		}
-	}
 
 	public static int addJobToMemory(int jobSize){
 		FreeSpace fs = FindFreeSpace(jobSize);
@@ -109,7 +114,7 @@ public class Swapper {
 		}
 	}
 	
-	public static void scheduleNextFromCreatedQueue() {
+	public static void swapInFromCreatedQueue() {
 		PCB next = os.createdQueue.peek();
 		
 		if  (next != null){
@@ -117,14 +122,34 @@ public class Swapper {
 				next.startingAddress = addJobToMemory(next.jobSize);
 				if (next.startingAddress < 0){
 					System.out.println("Unable to find free spce... need to solve this ------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + next.jobNumber);
+					os.createdQueue.add(os.createdQueue.poll());
 					printFreeSpaceTable();
 				}
 			}
 			if (!os.isDrumBusy && next.startingAddress > -1){
 				os.isDrumBusy = true;
+				os.swapDirection = 0;
 				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);
 			}
-		}
+		} 
 	}
+	
+//	public static void swapInFromSwappedOutQueue() {
+//		for (int i = 0, l = os.jobTable.size(); i < l; i++){
+//			PCB job = os.jobTable.get(i);
+//			System.out.println("PRingint this shit");
+//			System.out.println(job.toString());
+//			if (job.status == PCB.SWAPPEDOUT){
+//				System.out.println("Swapping job back in");
+//				if (!os.isDrumBusy && job.startingAddress > -1){
+//					os.isDrumBusy = true;
+//					os.swapDirection = 0;
+//					sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 0);
+//					break;
+//				}
+//			}
+//		}
+//	}
+	
 	
 }
