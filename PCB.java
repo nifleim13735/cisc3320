@@ -95,10 +95,9 @@ public class PCB {
 	}
 
 	public String toString() {
-		return "Job #: " + this.jobNumber + ", status:" + this.status + ", priority: " + this.priority + ", jobSize: " + this.jobSize + ", maxCpuTime: " + this.maxCpuTime 
-				+ ", cpu time used: " + this.cpuTimeUsed + ", cpu time remaining: " + this.cpuTimeRemaining() 
-				+ ", timeSlice on next tick: " + this.timeSlice + ", outstanding I/O requests: " + this.outstandingIoRequests
-				+ ", startingAddress: " + this.startingAddress ;
+		return "\n Job#: " + this.jobNumber + "\n status:" + this.status + "\n priority: " + this.priority + "\n jobSize: " + this.jobSize + "\n maxCpuTime: " + this.maxCpuTime 
+				+ "\n cpu time used: " + this.cpuTimeUsed + "\n cpu time remaining: " + this.cpuTimeRemaining() 
+				+ "\n timeSlice on next tick: " + this.timeSlice + "\n outstanding I/O requests: " + this.outstandingIoRequests
+				+ "\n startingAddress: " + this.startingAddress ;
 	}
-
 }

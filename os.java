@@ -31,7 +31,7 @@ public class os {
 		swappedOutQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 		
-		sos.ontrace();
+		//sos.ontrace();
 	}
 
 
@@ -71,6 +71,25 @@ public class os {
 		RunOSTasks(a, p);
 	}
 
+//	public static void Drmint (int []a, int []p)  {
+//		System.out.println("Drum Interrupt");
+//		BookKeeping(p[5]);
+//		PCB pcb = createdQueue.peek();
+//		isDrumBusy = false;
+//		if(pcb.startingAddress >= 0){
+//			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
+////			isDrumBusy = false;
+//			pcb.status = PCB.READY;
+//			readyQueue.add(pcb);
+//			createdQueue.poll();
+//		}
+//		else{
+//			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
+//		}
+//		trace();
+//		RunOSTasks(a, p);
+//	}
+	
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt, Direction: " + os.swapDirection);
 		BookKeeping(p[5]);
@@ -120,7 +139,6 @@ public class os {
 			}
 			break;
 		}
-
 		RunOSTasks(a, p);
 	}
 
@@ -128,7 +146,6 @@ public class os {
 		currentSystemTime = p;
 		if (runningJob != null ){
 			runningJob.incrementCpuTimeUsed(currentSystemTime - systemTimeWhenJobBeganToRun);
-
 		}
 	}
 
@@ -139,13 +156,13 @@ public class os {
 		Swapperr();
 		Scheduler(a, p);
 		RunJob(a, p);
-		trace();
+		//trace();
 
 	}
 
 	static void Swapperr () {
 		//System.out.println("Running Swapper");
-		if (currentSystemTime - swapperTimer > 1000){
+		if (currentSystemTime - swapperTimer > 2010){
 			swapperTimer = os.currentSystemTime;
 			System.out.println("Swapper Time");
 			if (os.swappedOutQueue.size() > 0){
@@ -156,8 +173,10 @@ public class os {
 				os.createdQueue.add(os.createdQueue.poll());
 			}
 		}
-		
 		Swapper.swapInFromCreatedQueue();
+		
+		
+		
 	}
 
 	static void Scheduler(int[] a, int[] p) {
@@ -174,7 +193,13 @@ public class os {
 			p[2] = runningJob.startingAddress;
 			p[3] = runningJob.jobSize;
 			p[4] = runningJob.timeSlice;
+
+//			System.out.println("Running scheduled job #: " + runningJob.jobNumber);
+//			System.out.println("Running scheduled job with size: " + runningJob.jobSize);
+//			System.out.println("Running scheduled job with time slice: " + runningJob.timeSlice);
+
 		//	System.out.println("Running scheduled job #" + runningJob.jobNumber);
+
 			nextScheduledJob = null;
 		} else {
 			a[0] =1;
