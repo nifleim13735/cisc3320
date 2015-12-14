@@ -9,20 +9,28 @@ public class Scheduler {
 				os.runningJob.status = PCB.READY;
 				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
-
 			}
-		
 			scheduleNextFromReadyQueue();
-		} else {
+		} 
+		else {
 			scheduleNextFromReadyQueue();
 		}
-
 	}
 
 
 	public static void scheduleNextFromReadyQueue(){
 		PCB next = os.readyQueue.peek();
 		if (next != null){
+			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
+				System.out.println("Swapping out long jobs");
+				if (!os.isDrumBusy){
+					os.Swapper.swapOut(next);
+					next.startingAddress = -1;
+					os.swappedOutQueue.add(os.readyQueue.poll());
+					scheduleNextFromReadyQueue();
+					return;
+				}
+			}
 			System.out.println("Scheduled job #" + next.jobNumber + " to run in the next tick");
 			os.nextScheduledJob = next;
 			os.readyQueue.poll();
@@ -44,7 +52,6 @@ public class Scheduler {
 		}
 	}
 
-	
 	public static void terminateJob(PCB job) {
 		//can't terminate if any outstanding i/o requests
 		if (job.outstandingIoRequests > 0){
@@ -57,9 +64,10 @@ public class Scheduler {
 			job.status = PCB.TERMINATED;
 			System.out.println(job.toString());
 			os.readyQueue.remove(job);
+
 			int i = os.jobTable.indexOf(job);
 			os.jobTable.remove(i);
-			Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
+			os.Swapper.removeJobFromMemory(job.startingAddress, job.jobSize);
 		}
 	}
 }
