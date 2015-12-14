@@ -29,7 +29,7 @@ public class Swapper {
 			} 
 	 }
 	 
-	public FreeSpace FindFreeSpace(int jobSize) {
+	public FreeSpace findFreeSpace(int jobSize) {
 		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
 		
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
@@ -56,18 +56,18 @@ public class Swapper {
 			int address = fs.address;
 			//update the existing free space 
 			fs.setStartAddress(fs.address + jobSize);
-<<<<<<< HEAD
+
 			
-			if(fs.size == 0){
-				freeSpaceTable.remove(fs);
-			}
-			
-			System.out.println("Starting address is: " + address);
-			System.out.println("After addJob, freeSpaceTable contains:");
-			printFreeSpaceTable();
-=======
+//			if(fs.size == 0){
+//				freeSpaceTable.remove(fs);
+//			}
+//			
+//			System.out.println("Starting address is: " + address);
+//			System.out.println("After addJob, freeSpaceTable contains:");
+//			printFreeSpaceTable();
+
 			if (fs.size == 0) freeSpaceTable.remove(fs);
->>>>>>> 57c9dfe2cff0846ae72842fdfbcf9ef189de77fe
+
 			return address;
 		} 
 
@@ -122,7 +122,7 @@ public class Swapper {
 		FreeSpace previous = null;
 		FreeSpace current;
 		
-		 ArrayList<FreeSpace> toRemove = new  ArrayList<FreeSpace>();
+		 ArrayList<FreeSpace> toRemove = new ArrayList<FreeSpace>();
 	
 		for (FreeSpace fs : freeSpaceTable){
 			current = fs;

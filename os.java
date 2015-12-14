@@ -139,7 +139,6 @@ public class os {
 			}
 			break;
 		}
-
 		RunOSTasks(a, p);
 	}
 
@@ -147,7 +146,6 @@ public class os {
 		currentSystemTime = p;
 		if (runningJob != null ){
 			runningJob.incrementCpuTimeUsed(currentSystemTime - systemTimeWhenJobBeganToRun);
-
 		}
 	}
 
@@ -164,7 +162,7 @@ public class os {
 
 	static void Swapperr () {
 		//System.out.println("Running Swapper");
-		if (currentSystemTime - swapperTimer > 1000){
+		if (currentSystemTime - swapperTimer > 2010){
 			swapperTimer = os.currentSystemTime;
 			System.out.println("Swapper Time");
 			if (os.swappedOutQueue.size() > 0){
@@ -175,7 +173,6 @@ public class os {
 				os.createdQueue.add(os.createdQueue.poll());
 			}
 		}
-		
 		Swapper.swapInFromCreatedQueue();
 	}
 
