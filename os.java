@@ -12,6 +12,8 @@ public class os {
 	public static Queue<PCB> swappedOutQueue;
 	public static PCB runningJob;
 	public static PCB nextScheduledJob;
+	public static PCB jobCurrentlyDoingIo;
+	public static PCB jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo;
 	public static int currentSystemTime = 0;
 	public static int systemTimeWhenJobBeganToRun = 0;
 	public static Swapper Swapper;
@@ -30,8 +32,8 @@ public class os {
 		ioQueue= new LinkedList<PCB>();
 		swappedOutQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
-		
-		//sos.ontrace();
+
+		sos.ontrace();
 	}
 
 
@@ -43,9 +45,9 @@ public class os {
 		//get starting address from Swapper. Hardcoding values for now.
 		int startingAddress = -1 ;// Swapper.addJobToMemory(p[3]);
 		//if (startingAddress < 0){
-			//System.out.println("Unable to find free spce... need to solve this");
-			//Swapper.printFreeSpaceTable();
-		
+		//System.out.println("Unable to find free spce... need to solve this");
+		//Swapper.printFreeSpaceTable();
+
 
 		//create new PCB and add to jobTable
 		PCB pcb = new PCB(p[1], p[2], p[3], p[4], p[5], startingAddress);
@@ -55,7 +57,7 @@ public class os {
 		os.createdQueue.add(pcb);
 		System.out.println(printQueue(os.createdQueue));
 		Swapper.swapIn();
-	//	}
+		//	}
 		//trace();
 		RunOSTasks(a, p);
 	}
@@ -63,7 +65,7 @@ public class os {
 	public static void Dskint (int []a, int []p)  {
 		System.out.println("Disk Interrupt");
 		BookKeeping(p[5]);
-		PCB pcb = ioQueue.peek();
+		PCB pcb = os.jobCurrentlyDoingIo;//ioQueue.peek();
 		System.out.println("Job #" + pcb.jobNumber + " finished doing I/O ");
 		pcb.ioRequestCompleted();
 		os.isDiskBusy = false;
@@ -71,33 +73,41 @@ public class os {
 		RunOSTasks(a, p);
 	}
 
-//	public static void Drmint (int []a, int []p)  {
-//		System.out.println("Drum Interrupt");
-//		BookKeeping(p[5]);
-//		PCB pcb = createdQueue.peek();
-//		isDrumBusy = false;
-//		if(pcb.startingAddress >= 0){
-//			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
-////			isDrumBusy = false;
-//			pcb.status = PCB.READY;
-//			readyQueue.add(pcb);
-//			createdQueue.poll();
-//		}
-//		else{
-//			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
-//		}
-//		trace();
-//		RunOSTasks(a, p);
-//	}
-	
+	//	public static void Drmint (int []a, int []p)  {
+	//		System.out.println("Drum Interrupt");
+	//		BookKeeping(p[5]);
+	//		PCB pcb = createdQueue.peek();
+	//		isDrumBusy = false;
+	//		if(pcb.startingAddress >= 0){
+	//			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY" + " at address " + pcb.startingAddress);
+	////			isDrumBusy = false;
+	//			pcb.status = PCB.READY;
+	//			readyQueue.add(pcb);
+	//			createdQueue.poll();
+	//		}
+	//		else{
+	//			System.out.println("Job #" + pcb.jobNumber + " has current address of -1.");
+	//		}
+	//		trace();
+	//		RunOSTasks(a, p);
+	//	}
+
 	public static void Drmint (int []a, int []p)  {
 		System.out.println("Drum Interrupt, Direction: " + os.swapDirection);
 		BookKeeping(p[5]);
 		if (os.swapDirection == 0){
-			PCB pcb = os.createdQueue.poll();
-			System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
-			pcb.status = PCB.READY;
-			readyQueue.add(pcb);
+			if (os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo != null) {
+				System.out.println("swapped in  io job drum interrup");
+				System.out.println(os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo.toString());
+				os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo.isSwappedOut = false;
+				os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo = null;
+			} else {
+				PCB pcb = os.createdQueue.poll();
+				System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
+				pcb.isSwappedOut = false;
+				pcb.status = PCB.READY;
+				readyQueue.add(pcb);
+			}
 		}
 		isDrumBusy = false;
 		trace();
@@ -162,6 +172,24 @@ public class os {
 
 	static void Swapperr () {
 		//System.out.println("Running Swapper");
+		if (os.jobTable.size() > 10) {
+			System.out.println("Jobtable has more than 40 entries... need to swap out something. Size = " + os.jobTable.size() );
+			//System.out.println(os.printJobTable());
+			for (int i =0, l = jobTable.size(); i < l; i++){
+				PCB job  = jobTable.get(i);
+				if (job.status == PCB.WAITING && job != os.jobCurrentlyDoingIo && os.ioQueue.size() > 2) {
+					System.out.println("Size of io queue =" + ioQueue.size());
+					System.out.println("Swapping out job #" + job.jobNumber);
+					System.out.println(job.toString());
+					job.isSwappedOut = true;
+					os.Swapper.swapOut(job);
+					
+
+					break;
+				}
+			}
+		}
+
 		if (currentSystemTime - swapperTimer > 2010){
 			swapperTimer = os.currentSystemTime;
 			System.out.println("Swapper Time");
@@ -174,9 +202,9 @@ public class os {
 			}
 		}
 		Swapper.swapInFromCreatedQueue();
-		
-		
-		
+
+
+
 	}
 
 	static void Scheduler(int[] a, int[] p) {
@@ -194,11 +222,11 @@ public class os {
 			p[3] = runningJob.jobSize;
 			p[4] = runningJob.timeSlice;
 
-//			System.out.println("Running scheduled job #: " + runningJob.jobNumber);
-//			System.out.println("Running scheduled job with size: " + runningJob.jobSize);
-//			System.out.println("Running scheduled job with time slice: " + runningJob.timeSlice);
+			//			System.out.println("Running scheduled job #: " + runningJob.jobNumber);
+			//			System.out.println("Running scheduled job with size: " + runningJob.jobSize);
+			//			System.out.println("Running scheduled job with time slice: " + runningJob.timeSlice);
 
-		//	System.out.println("Running scheduled job #" + runningJob.jobNumber);
+			//	System.out.println("Running scheduled job #" + runningJob.jobNumber);
 
 			nextScheduledJob = null;
 		} else {
@@ -228,11 +256,11 @@ public class os {
 		StringBuilder sb = new StringBuilder();
 		sb.append("-----------------------------" + q.size());
 		for (int i = 0, l = q.size(); i < l; i++ ){
-		//	sb.append(q.peek().toString());
+			//	sb.append(q.peek().toString());
 		}
 		return sb.toString();
 	}
-	
+
 	static String printJobTable (){
 		System.out.println("Job Table:");
 		StringBuilder sb = new StringBuilder();

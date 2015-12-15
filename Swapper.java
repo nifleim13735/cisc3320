@@ -17,6 +17,23 @@ public class Swapper {
 		 swapInFromCreatedQueue();
 	 }
 	 
+	 public void swapIn(PCB job){
+		 System.out.println("Trying to swapin swapped out job # " + job.jobNumber );
+		 System.out.println(job.toString());
+		 if (job.startingAddress < 0 ){
+				job.startingAddress = addJobToMemory(job.jobSize);
+				if (job.startingAddress < 0){
+					System.out.println("Unable to find free spce... need to solve this ------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + job.jobNumber);
+					printFreeSpaceTable();
+				}
+			}
+			if (!os.isDrumBusy && job.startingAddress > -1){
+				System.out.println("Swapping IO job back in");
+				os.isDrumBusy = true;
+				os.swapDirection = 0;
+				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 0);
+			}
+	 }
 	 	 
 	 public void swapOut(PCB job){
 			if (!os.isDrumBusy){
@@ -26,11 +43,12 @@ public class Swapper {
 				os.swapDirection = 1;
 				removeJobFromMemory(job.startingAddress, job.jobSize);
 				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
+				job.startingAddress = -1;
 			} 
 	 }
 	 
 	public FreeSpace findFreeSpace(int jobSize) {
-		System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
+	//	System.out.println("Trying to find free space ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
 
 		for (int i = 0, l = freeSpaceTable.size(); i < l; i++){
 			if (freeSpaceTable.get(i).size >= jobSize){
@@ -44,15 +62,15 @@ public class Swapper {
 	}
 
 	public int addJobToMemory(int jobSize){
-		System.out.println("Before addJob, freeSpaceTable contains:");
-		printFreeSpaceTable();
+	//	System.out.println("Before addJob, freeSpaceTable contains:");
+	//	printFreeSpaceTable();
 		
 		FreeSpace fs = findFreeSpace(jobSize);
-		System.out.println("After findFreeSpace, freeSpaceTable contains:");
-		printFreeSpaceTable();
+	//	System.out.println("After findFreeSpace, freeSpaceTable contains:");
+	//	printFreeSpaceTable();
 		//removeFreeSpacesWithSizeZero();
 		if (fs != null){
-			System.out.println("Found free space at MMMM++++++++++++++++++++++++++++++++++++++++MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM" + fs.toString());
+	//		System.out.println("Found free space at MMMM++++++++++++++++++++++++++++++++++++++++MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM" + fs.toString());
 			int address = fs.address;
 			//update the existing free space 
 			fs.setStartAddress(fs.address + jobSize);
@@ -76,18 +94,18 @@ public class Swapper {
 	}
 
 	public void removeJobFromMemory(int startAddress, int jobSize){
-		System.out.println("Freeing memory");
+	//	System.out.println("Freeing memory");
 		FreeSpace fs = new FreeSpace(startAddress, jobSize);
 		mergeFreeSpace(fs);
 		mergeFreeSpaces();
 		Collections.sort(freeSpaceTable);
-		System.out.println("Free Space Table after removed job.");
-		printFreeSpaceTable();
+	//	System.out.println("Free Space Table after removed job.");
+	//	printFreeSpaceTable();
 	}
 	
 	void mergeFreeSpace(FreeSpace fs) {
-		System.out.println("Before merge, freeSpaceTable contains:");
-		printFreeSpaceTable();
+	//	System.out.println("Before merge, freeSpaceTable contains:");
+	//	printFreeSpaceTable();
 		//combine free spaces
 		int l = freeSpaceTable.size();
 		for (int i = 0; i < l; i++){
@@ -111,11 +129,11 @@ public class Swapper {
 
 		}
 		
-		System.out.println("No contiguous free space. Adding new free space to table: " + fs.toString());
+	//	System.out.println("No contiguous free space. Adding new free space to table: " + fs.toString());
 		freeSpaceTable.add(fs);
 		
-		System.out.println("After merge, freeSpaceTable contains:");
-		printFreeSpaceTable();
+	//	System.out.println("After merge, freeSpaceTable contains:");
+	//	printFreeSpaceTable();
 	}
 
 	public void mergeFreeSpaces (){
@@ -154,6 +172,11 @@ public class Swapper {
 
 		if  (next != null){
 			if (next.startingAddress < 0 ){
+//				if ((next.jobSize >=30 || next.maxCpuTime > 30000) && os.createdQueue.size() > 2 ){
+//					System.out.println("Not swapping in large job.. pushing it to the end ------>>" + next.jobNumber );
+//					os.createdQueue.add(os.createdQueue.poll());
+//					return;
+//				}
 				next.startingAddress = addJobToMemory(next.jobSize);
 				if (next.startingAddress < 0){
 					System.out.println("Unable to find free spce... need to solve this ------------------------------------------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + next.jobNumber);
@@ -161,7 +184,7 @@ public class Swapper {
 					printFreeSpaceTable();
 				}
 			}
-			if (!os.isDrumBusy && next.startingAddress > -1){
+			if (!os.isDrumBusy && next.startingAddress > -1 && os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo ==  null){
 				System.out.println("Swapping from memory to core");
 				os.isDrumBusy = true;
 				os.swapDirection = 0;

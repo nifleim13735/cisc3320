@@ -19,6 +19,7 @@ public class PCB {
 	int outstandingIoRequests;
 	Boolean isBlocked;
 	Boolean markedForTermination;
+	Boolean isSwappedOut;
 
 	PCB(int jobNumber, int priority, int jobSize, int maxCpuTime, int currentTime, int startingAddress) {
 		this.status = CREATED;
@@ -33,6 +34,7 @@ public class PCB {
 		this.isBlocked = false;
 		this.markedForTermination = false;
 		this.timeSlice = 0;
+		this.isSwappedOut = false;
 		this.setTimeSlice();
 	}
 
@@ -50,7 +52,7 @@ public class PCB {
 	}
 
 	public static void ioRequestCompleted() {
-		PCB job = os.ioQueue.peek();
+		PCB job = os.jobCurrentlyDoingIo; // os.ioQueue.peek();
 		job.outstandingIoRequests -= 1;
 		if (job != null){
 			if (job.outstandingIoRequests == 0 ){
@@ -58,7 +60,7 @@ public class PCB {
 				if (job.isBlocked) { job.unblockJob(); }
 				if (job.markedForTermination){
 					Scheduler.terminateJob(job);
-					os.ioQueue.poll();
+					os.ioQueue.remove(job);
 				} else {
 					if (job.status != READY){
 						System.out.println("Changing status of job # " + job.jobNumber + " from " + job.status + " to READY --------------->>>> and added to ready queue");
@@ -66,7 +68,7 @@ public class PCB {
 						os.readyQueue.add(job);
 						//os.trace();
 					}
-					os.ioQueue.poll();
+					os.ioQueue.remove(job);
 				}
 			}
 		}
@@ -95,9 +97,9 @@ public class PCB {
 	}
 
 	public String toString() {
-		return "\n Job#: " + this.jobNumber + "\n status:" + this.status + "\n priority: " + this.priority + "\n jobSize: " + this.jobSize + "\n maxCpuTime: " + this.maxCpuTime 
-				+ "\n cpu time used: " + this.cpuTimeUsed + "\n cpu time remaining: " + this.cpuTimeRemaining() 
-				+ "\n timeSlice on next tick: " + this.timeSlice + "\n outstanding I/O requests: " + this.outstandingIoRequests
-				+ "\n startingAddress: " + this.startingAddress ;
+		return " Job#: " + this.jobNumber + " status:" + this.status + " priority: " + this.priority + " jobSize: " + this.jobSize + " maxCpuTime: " + this.maxCpuTime 
+				+ " cpu time used: " + this.cpuTimeUsed + " cpu time remaining: " + this.cpuTimeRemaining() 
+				+ " timeSlice on next tick: " + this.timeSlice + " outstanding I/O requests: " + this.outstandingIoRequests
+				+ " startingAddress: " + this.startingAddress ;
 	}
 }
