@@ -35,7 +35,7 @@ public class os {
 		swappedOutQueue= new LinkedList<PCB>();
 		Swapper = new Swapper();
 
-		sos.ontrace();
+		//sos.ontrace();
 	}
 
 
@@ -177,15 +177,15 @@ public class os {
 
 	static void Swapperr () {
 		//System.out.println("Running Swapper");
-		if (os.jobTable.size() > 10) {
-			System.out.println("Jobtable has more than 40 entries... need to swap out something. Size = " + os.jobTable.size() );
+		if (os.jobTable.size() > 30) {
+			//System.out.println("Jobtable has more than 40 entries... need to swap out something. Size = " + os.jobTable.size() );
 			//System.out.println(os.printJobTable());
 			for (int i =0, l = jobTable.size(); i < l; i++){
 				PCB job  = jobTable.get(i);
 				if (job.status == PCB.WAITING && job != os.jobCurrentlyDoingIo && os.ioQueue.size() > 2 && os.isDrumBusy == false) {
-					System.out.println("Size of io queue =" + ioQueue.size());
-					System.out.println("Swapping out job #" + job.jobNumber);
-					System.out.println(job.toString());
+					//System.out.println("Size of io queue =" + ioQueue.size());
+					//System.out.println("Swapping out job #" + job.jobNumber);
+					//System.out.println(job.toString());
 					job.isSwappedOut = true;
 					job.inTransit = true;
 					os.Swapper.swapOut(job);
@@ -196,7 +196,7 @@ public class os {
 			}
 		}
 
-		if (currentSystemTime - swapperTimer > 2010){
+		if (currentSystemTime - swapperTimer > 1510){
 			swapperTimer = os.currentSystemTime;
 			System.out.println("Swapper Time");
 			if (os.swappedOutQueue.size() > 0){

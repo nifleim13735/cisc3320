@@ -21,7 +21,7 @@ public class Scheduler {
 	public static void scheduleNextFromReadyQueue(){
 		PCB next = os.readyQueue.peek();
 		if (next != null){
-			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
+			if (next.cpuTimeRemaining() > 40000 && os.readyQueue.size() > 4 && next.outstandingIoRequests == 0){
 				System.out.println("Swapping out long jobs");
 				if (!os.isDrumBusy){
 					os.Swapper.swapOut(next);
@@ -38,7 +38,7 @@ public class Scheduler {
 		else {
 			//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
-			os.trace();
+		//	os.trace();
 		}
 	}
 
@@ -60,9 +60,9 @@ public class Scheduler {
 					PCB job = os.jobTable.get(i);
 					if (job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
 						os.ioQueue.remove(job);
-						System.out.println(job.toString());
+						//System.out.println(job.toString());
 						next = job;
-						System.out.println(os.printJobTable());
+						//System.out.println(os.printJobTable());
 						break;
 					}
 				}
@@ -75,7 +75,7 @@ public class Scheduler {
 				dispatchIo(next);
 			} else {
 				System.out.println("No io job scheduled");
-				os.trace();
+				//os.trace();
 			}
 		}
 	}
