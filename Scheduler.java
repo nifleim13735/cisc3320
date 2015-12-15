@@ -5,7 +5,7 @@ public class Scheduler {
 		scheduleIo();
 		if (os.runningJob != null){
 			if (os.runningJob.status.equals(PCB.RUNNING)){
-				System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+				//System.out.println("Moving runningjob to readyQueue ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 				os.runningJob.status = PCB.READY;
 				os.readyQueue.add(os.runningJob);
 				os.runningJob = null;
@@ -38,17 +38,53 @@ public class Scheduler {
 		else {
 			//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
+			os.trace();
 		}
 	}
 
 	public static void scheduleIo() {
 		PCB next = os.ioQueue.peek();
 		if (next != null){
-				if (!os.isDiskBusy){
-					System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
-					os.isDiskBusy = true;
-					sos.siodisk(next.jobNumber);
+			//if next job is swapped out swap it back in
+			if (next.startingAddress < 0){
+				if (!os.isDrumBusy){
+					System.out.println("job that wants to do io is not incore.. need to swap it in Job #" + next.jobNumber);
+					os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo = next;
+					os.Swapper.swapIn(next);
+				}
+				//while the next job is being swapped in there could be other jobs that need to do io
+				//try to find those jobs
+				next = null;
+				for (int i = 0, l = os.jobTable.size(); i < l; i++){
+					PCB job = os.jobTable.get(i);
+					if (job.status == PCB.READY &&  job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
+						os.ioQueue.remove(job);
+						System.out.println(job.toString());
+						next = job;
+						System.out.println(os.printJobTable());
+						break;
+					}
+				}
+
+				if (os.ioQueue.size() > 1){
+					os.ioQueue.add(os.ioQueue.poll());
+				}
 			}
+			if (next != null){
+				dispatchIo(next);
+			} else {
+				System.out.println("No io job scheduled");
+				os.trace();
+			}
+		}
+	}
+
+	public static void dispatchIo(PCB next) {
+		if (!os.isDiskBusy && next.isSwappedOut == false){
+			System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++----------------------------------> schduled cpu to do io for job" + next.jobNumber + ", " + next.status);
+			os.isDiskBusy = true;
+			os.jobCurrentlyDoingIo = next;
+			sos.siodisk(next.jobNumber);
 		}
 	}
 
