@@ -1,0 +1,11 @@
+Viachaslau (Slava) Kalatsei   
+Professor Jones
+CISC-3320
+16 December 2015 
+Team Report
+As a member of the group I was writing following interrupt handlers functions: Tro, Svc, DiskInt. Also, during project I was participating in debugging code (Quality Assurance) and discussions.
+My teammates were doing debugging as well and also they were writing following:
+Andrew: Swapper and Scheduler classes and Drmint interrupt handler function;
+Tofic: he was a true leader of the group and was “pushing” project forward, he was writing (os, PCB and FreeSpace) and take care of the all code including our functions and classes.
+Finally, all members of the group were participating in debugging code, and in discussion and fixing it. 
+
