@@ -12,8 +12,10 @@ public class os {
 	public static Queue<PCB> swappedOutQueue;
 	public static PCB runningJob;
 	public static PCB nextScheduledJob;
-	public static PCB jobCurrentlyDoingIo;
 	public static PCB jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo;
+	public static PCB jobBeingSwappedIn;
+
+	public static PCB jobCurrentlyDoingIo;
 	public static int currentSystemTime = 0;
 	public static int systemTimeWhenJobBeganToRun = 0;
 	public static Swapper Swapper;
@@ -100,11 +102,14 @@ public class os {
 				System.out.println("swapped in  io job drum interrup");
 				System.out.println(os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo.toString());
 				os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo.isSwappedOut = false;
+				os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo.inTransit = false;
 				os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo = null;
 			} else {
-				PCB pcb = os.createdQueue.poll();
+				PCB pcb = os.jobBeingSwappedIn;// os.createdQueue.poll();
+				os.createdQueue.remove(pcb);
 				System.out.println("Changing state of Job #" + pcb.jobNumber + " from " + pcb.status + " to " + "READY");
 				pcb.isSwappedOut = false;
+				pcb.inTransit = false;
 				pcb.status = PCB.READY;
 				readyQueue.add(pcb);
 			}
@@ -177,11 +182,12 @@ public class os {
 			//System.out.println(os.printJobTable());
 			for (int i =0, l = jobTable.size(); i < l; i++){
 				PCB job  = jobTable.get(i);
-				if (job.status == PCB.WAITING && job != os.jobCurrentlyDoingIo && os.ioQueue.size() > 2) {
+				if (job.status == PCB.WAITING && job != os.jobCurrentlyDoingIo && os.ioQueue.size() > 2 && os.isDrumBusy == false) {
 					System.out.println("Size of io queue =" + ioQueue.size());
 					System.out.println("Swapping out job #" + job.jobNumber);
 					System.out.println(job.toString());
 					job.isSwappedOut = true;
+					job.inTransit = true;
 					os.Swapper.swapOut(job);
 					
 

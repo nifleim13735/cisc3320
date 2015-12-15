@@ -43,11 +43,12 @@ public class Scheduler {
 	}
 
 	public static void scheduleIo() {
+		System.out.println("Scheduling io");
 		PCB next = os.ioQueue.peek();
 		if (next != null){
 			//if next job is swapped out swap it back in
-			if (next.startingAddress < 0){
-				if (!os.isDrumBusy){
+			if (next.isSwappedOut ){
+				if (!os.isDrumBusy ){
 					System.out.println("job that wants to do io is not incore.. need to swap it in Job #" + next.jobNumber);
 					os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo = next;
 					os.Swapper.swapIn(next);
@@ -57,7 +58,7 @@ public class Scheduler {
 				next = null;
 				for (int i = 0, l = os.jobTable.size(); i < l; i++){
 					PCB job = os.jobTable.get(i);
-					if (job.status == PCB.READY &&  job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
+					if (job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
 						os.ioQueue.remove(job);
 						System.out.println(job.toString());
 						next = job;
