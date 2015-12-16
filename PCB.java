@@ -20,6 +20,7 @@ public class PCB {
 	Boolean isBlocked;
 	Boolean markedForTermination;
 	Boolean isSwappedOut;
+	Boolean inTransit;
 
 	PCB(int jobNumber, int priority, int jobSize, int maxCpuTime, int currentTime, int startingAddress) {
 		this.status = CREATED;
@@ -35,6 +36,7 @@ public class PCB {
 		this.markedForTermination = false;
 		this.timeSlice = 0;
 		this.isSwappedOut = false;
+		this.inTransit = false;
 		this.setTimeSlice();
 	}
 

@@ -41,6 +41,7 @@ public class Swapper {
 				job.status = PCB.SWAPPEDOUT;
 				os.isDrumBusy = true;
 				os.swapDirection = 1;
+				job.isSwappedOut = true;
 				removeJobFromMemory(job.startingAddress, job.jobSize);
 				sos.siodrum(job.jobNumber, job.jobSize, job.startingAddress, 1);
 				job.startingAddress = -1;
@@ -184,8 +185,9 @@ public class Swapper {
 					printFreeSpaceTable();
 				}
 			}
-			if (!os.isDrumBusy && next.startingAddress > -1 && os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo ==  null){
-				System.out.println("Swapping from memory to core");
+			if (!os.isDrumBusy && next.startingAddress > -1 && next.inTransit == false && os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo ==  null){
+				os.jobBeingSwappedIn = next;
+				System.out.println("Swapping from memory to core job#" + os.jobBeingSwappedIn.jobNumber);
 				os.isDrumBusy = true;
 				os.swapDirection = 0;
 				sos.siodrum(next.jobNumber, next.jobSize, next.startingAddress, 0);

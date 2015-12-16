@@ -21,7 +21,7 @@ public class Scheduler {
 	public static void scheduleNextFromReadyQueue(){
 		PCB next = os.readyQueue.peek();
 		if (next != null){
-			if (next.cpuTimeRemaining() > 20000 && os.readyQueue.size() > 2 && next.outstandingIoRequests == 0){
+			if (next.cpuTimeRemaining() > 40000 && os.readyQueue.size() > 4 && next.outstandingIoRequests == 0){
 				System.out.println("Swapping out long jobs");
 				if (!os.isDrumBusy){
 					os.Swapper.swapOut(next);
@@ -38,16 +38,17 @@ public class Scheduler {
 		else {
 			//	System.out.println("No job scheduled");
 			os.nextScheduledJob = null;
-			os.trace();
+		//	os.trace();
 		}
 	}
 
 	public static void scheduleIo() {
+		System.out.println("Scheduling io");
 		PCB next = os.ioQueue.peek();
 		if (next != null){
 			//if next job is swapped out swap it back in
-			if (next.startingAddress < 0){
-				if (!os.isDrumBusy){
+			if (next.isSwappedOut ){
+				if (!os.isDrumBusy ){
 					System.out.println("job that wants to do io is not incore.. need to swap it in Job #" + next.jobNumber);
 					os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo = next;
 					os.Swapper.swapIn(next);
@@ -57,11 +58,11 @@ public class Scheduler {
 				next = null;
 				for (int i = 0, l = os.jobTable.size(); i < l; i++){
 					PCB job = os.jobTable.get(i);
-					if (job.status == PCB.READY &&  job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
+					if (job.outstandingIoRequests > 0 && job.isSwappedOut == false && job != os.jobThatNeedsToBeSwappedInBecauseItNeedsToDoIo){
 						os.ioQueue.remove(job);
-						System.out.println(job.toString());
+						//System.out.println(job.toString());
 						next = job;
-						System.out.println(os.printJobTable());
+						//System.out.println(os.printJobTable());
 						break;
 					}
 				}
@@ -74,7 +75,7 @@ public class Scheduler {
 				dispatchIo(next);
 			} else {
 				System.out.println("No io job scheduled");
-				os.trace();
+				//os.trace();
 			}
 		}
 	}
